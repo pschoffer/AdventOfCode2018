@@ -23,7 +23,25 @@
   (map #(parseRecord %) (str/split-lines raw_input)))
 (def test_records
   (map #(parseRecord %) (str/split-lines test_input)))
-test_records
+
+
+
+(defn enrichCoordinate
+  [data]
+  (assoc data :coordinates
+         (let [x (get-in data [:start :x])
+               y (get-in data [:start :y])
+               endx (+ x (get-in data [:diff :x]))
+               endy (+ y (get-in data [:diff :y]))]
+           (loop [currcoors [] currx x curry y]
+             (if (< curry endy)
+               (if (< currx endx)
+                 (recur (conj currcoors {:x currx :y curry}) (inc currx) curry)
+                 (recur currcoors x (inc curry)))
+               currcoors)))))
+
+(def enriched_records (map #(enrichCoordinate %) records))
+(def enriched_test_records (map #(enrichCoordinate %) test_records))
 
 (defn maxCoordinate
   [records]
@@ -58,8 +76,34 @@ test_records
                     (getMap 1000)
                     records))
 
+(def populatedTestArea (reduce
+                        addItem
+                        (getMap 10)
+                        test_records))
+
+
 (defn countLine
   [line]
   (count (filter #(> % 1) (map #(count %) line))))
 
 (reduce + (map #(countLine  %) populatedArea))
+
+
+(defn notshared
+  [[coordinate & rest] area]
+
+  (if coordinate
+    (let [x (get coordinate :x)
+          y (get coordinate :y)]
+      (if (= 1
+             (count (get-in area [x y])))
+        (notshared rest area)
+        false))
+    true))
+
+populatedTestArea
+
+(map  #(notshared % populatedTestArea) (map #(get % :coordinates) enriched_test_records))
+
+(get (first (filter #(> (get % :id) 500) enriched_records)) :id)
+(get (first (filter #(notshared (get % :coordinates) populatedArea) enriched_records)) :id)
