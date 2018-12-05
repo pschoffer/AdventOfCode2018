@@ -51,19 +51,4 @@ test4
 (frekvencies test4)
 (matchingF 1 0 adjustments)
 
-(defn findF
-  ([sum visited [head & tail] baseAdjustments]
-   (if head
-     (let [newF (+ sum head)]
-       (if (contains? visited newF)
-         newF
-         (do
-           (print visited)
-           (findF newF (conj visited newF) tail baseAdjustments))))
-     (findF sum visited baseAdjustments)))
-  ([sum visited adjustments]
-   (findF sum visited adjustments adjustments))
-  ([sum adjustments]
-   (findF sum #{sum} adjustments)))
-
 
