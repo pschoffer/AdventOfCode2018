@@ -28,3 +28,14 @@
     ))
 (time (count (react input -1)))
 
+(def alphabet (map char (concat (range (int \a) (int \z)) [(int \z)])))
+
+(defn removeChars
+  [chars input]
+  (apply str (remove
+              (partial contains? (set chars)) input)))
+
+(def test_variants (set (map #(removeChars [% (first (s/upper-case %))] test_input) alphabet)))
+(def variants (set (map #(removeChars [% (first (s/upper-case %))] input) alphabet)))
+
+(apply min (map #(count (react % -1)) variants))
