@@ -120,10 +120,29 @@
        )
   )
 
+(defn findLongestSleeperPerMinute
+  [last [id intervals]]
+  (let [lastCount (:count last 0)
+        sleepMap (composeMapIntervals intervals)
+        longestMinutesPerHour (map findLongestMinute sleepMap)
+        longestMinute (reduce #(if (> (:count %2) (:count %1)) %2 %1) longestMinutesPerHour)
+        currentCount (:count longestMinute)
+        ]
+    (if (> currentCount lastCount)
+      {:count currentCount :longestMinute (:min longestMinute) :id id }
+      last)))
+
+
+
 
 (def longest_test (reduce findLongestSleeper {} reduced_test_records))
 (def longest (reduce findLongestSleeper {} reduced_records))
 
+(map #(count (get % 1)) (filter #(> (count (get % 1)) 0) reduced_records))
+(def longest_minute_result (reduce findLongestSleeperPerMinute {} (filter #(> (count (get % 1)) 0) reduced_records)))
+(reduce findLongestSleeperPerMinute {} reduced_test_records)
+
+(* (:id longest_minute_result) (:longestMinute longest_minute_result))
 
 (defn findLongestMinute
   [[hour minutes]]
@@ -141,3 +160,5 @@
 
 (def minute (:min (nth (map findLongestMinute (:sleepMap longest)) 0)))
 (* (:id longest) minute)
+
+
