@@ -15,12 +15,16 @@
 (def test2 "asSsSS")
 
 (defn react
-  [input]
-  (let [startIx -1
-        reactionIx (findReaction nil startIx input)]
+  [input processedIx]
+  (let [processedChar (nth (seq input) processedIx nil)
+        inputToSearch (subs input (inc processedIx))
+        reactionIx (findReaction processedChar processedIx inputToSearch)]
+    ; (do (println input " - [" processedIx "-" processedChar "] - " reactionIx)
     (if reactionIx
       (let [newStr (str (subs input 0 reactionIx) (subs input (+ reactionIx 2)))]
-        (recur newStr))
-      input)))
-(count (react test2))
+        (recur newStr (- reactionIx 1)))
+      input)
+    ; )
+    ))
+(time (count (react input -1)))
 
