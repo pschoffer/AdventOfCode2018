@@ -184,3 +184,43 @@
                                 (filter #(not (contains? infinite (first %))) 
                                         occurances))
                                 )))
+
+
+; ------------------------------- PART 2 ------------------------------
+(def test_border 32)
+(def border 10000)
+
+(defn getAllCoordinates
+  [boundaries]
+  (let [xBound (range (:w boundaries) (inc (:e boundaries)))
+        yBound (range (:s boundaries) (inc (:n boundaries)))]
+
+    (apply concat (map (fn [y] 
+           (map #(vector % y) xBound     
+            )) yBound)))
+  )
+
+(def test_all_coordinates (getAllCoordinates test_boundaries))
+(def all_coordinates (getAllCoordinates boundaries))
+
+(defn distance
+  [a b]
+  (+ 
+   (Math/abs (- (first a) (first b)))
+   (Math/abs (- (second a) (second b)))))
+
+
+(defn isClose?
+  [coordinate targets border]
+  (let [full_distance (reduce + (map #(distance coordinate %) targets))]
+  (< full_distance border)))
+
+(def test_count (count (filter
+        (fn [coordinate]
+          (isClose? coordinate test_input test_border))
+        test_all_coordinates)))
+
+(def final_count (count (filter
+                        (fn [coordinate]
+                          (isClose? coordinate input border))
+                        all_coordinates)))
