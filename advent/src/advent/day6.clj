@@ -92,33 +92,6 @@
       [newX y])))
 
 
-(defn findClosest
-  ([coordinate area boundaries] (findClosest coordinate area boundaries 0))
-  ([coordinate area boundaries distance]
-   (let
-    [possible (getDistantCoordinates distance coordinate boundaries)
-     closest (findHits area (seq possible))]
-     (if (not (empty? closest))
-       (if (> (count closest) 1)
-         -1
-         (first closest))
-       (recur coordinate area boundaries (inc distance))))))
-
-(defn plotAllCoordinates
-  ([srcArea boundaries] (plotAllCoordinates srcArea boundaries srcArea [(:w boundaries) (:w boundaries)]))
-  ([srcArea boundaries currArea coordinate]
-   (if coordinate
-     (do (println coordinate) (flush)
-         (let [closest (findClosest coordinate srcArea boundaries)
-               newArea (assoc-in currArea [(second coordinate) (first coordinate)] closest)
-               newCoordinate (nextPoint coordinate boundaries)]
-           (recur srcArea boundaries newArea newCoordinate)))
-     currArea)))
-(time (plotAllCoordinates test_base_area test_boundaries))
-
-(def test_full_area (plotAllCoordinates test_base_area test_boundaries))
-; (def full_area (plotAllCoordinates base_area boundaries))
-
 (defn countOccurances
   [area]
   (reduce
