@@ -40,3 +40,19 @@
 
 (def test_result (sumMetadata test_root 0))
 (def result (sumMetadata root 0))
+
+
+; ---------------- Part 2 --------------------
+
+(defn value
+  [root]
+  (let [{:keys [metadata subnodes]} root]
+    (if (empty? subnodes)
+      (reduce + metadata)
+      (let [subnodeCount (count subnodes)
+            validMetadata (filter #(and (> % 0) (<= % subnodeCount)) metadata)
+            relevantSubnodes (map #(nth subnodes (- % 1)) validMetadata)
+            relevantValues (map value relevantSubnodes)]
+        (reduce + relevantValues)))))
+
+(value root)
