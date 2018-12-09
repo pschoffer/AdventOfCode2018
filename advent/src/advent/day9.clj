@@ -106,3 +106,11 @@
 
 (def test_max_points (apply max (map second test_points)))
 (def max_points (apply max (map second points)))
+
+
+; ----------------------- part 2 --------------------------
+
+(def super_placed (placeMarbles (* 100 (second input)) (first input)))
+
+(def super_points (countPoints super_placed))
+(def super_max_points (apply max (map second super_points)))
