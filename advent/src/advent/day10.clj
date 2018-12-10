@@ -60,10 +60,7 @@
      (let [advacedInput (advaceInput input)
            newDistance (diffExtremes (map :p advacedInput))]
        (if (or (not lastDistance) (< newDistance lastDistance))
-         (do
-          ;  (if (< newDistance 180)
-            ;  (printLines (getText (map :p advacedInput))))
-           (recur advacedInput newDistance))
+         (recur advacedInput newDistance)
          input)))))
 (def test_text (findText test_input))
 (def text (findText input))
@@ -98,3 +95,18 @@
 
 (printLines (getText (map :p test_text)))
 (printLines (getText (map :p text)))
+
+; ------------------------------------- part 2 -------------------------------------
+
+(defn findTextTime
+  ([input] (findTextTime input nil 0))
+  ([input lastDistance time]
+   (do
+     (println "Distance " lastDistance)
+     (let [advacedInput (advaceInput input)
+           newDistance (diffExtremes (map :p advacedInput))]
+       (if (or (not lastDistance) (< newDistance lastDistance))
+         (recur advacedInput newDistance (inc time))
+         time)))))
+
+; (findTextTime input)
