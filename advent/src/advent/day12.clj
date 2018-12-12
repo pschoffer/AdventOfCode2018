@@ -48,7 +48,65 @@
            newResult (if partialResult (conj currResult center) currResult)]
        (recur state rules (inc position) max newResult)))))
 
-(def test_result ((apply comp (repeat 20 #(applyRules % test_rules))) test_state))
-(def result ((apply comp (repeat 20 #((memoize applyRules) % rules))) state))
 
-(reduce + result)
+; --------------------------------- part 2 -----------------------------
+
+(defn optimizeRules
+  [rules]
+  (let [onlyTrue (filter second rules)
+        allPatterns (map first onlyTrue)]
+    (into #{} allPatterns)))
+
+(defn matchesRule
+  [rules pattern]
+  (contains? rules pattern))
+
+(defn applyOptimizedRules
+  ([state rules]
+   (let [min (apply min state)
+         start (- min 4)
+         max (apply max state)]
+     (do
+      ;  (println (sort state))
+       (applyOptimizedRules state rules start max #{}))))
+  ([state rules position max currResult]
+   (if (> position max)
+     currResult
+     (let [base (range position (+ position 5))
+           patern (map #(contains? state %) base)
+           partialResult (matchesRule rules patern)
+           center (+ position 2)
+           newResult (if partialResult (conj currResult center) currResult)]
+       (recur state rules (inc position) max newResult)))))
+
+(defn getPaternShift
+  [a b]
+  (if (= (count a) (count b))
+    (let [minA (apply min a)
+          minB (apply min b)
+          diff (- minB minA)
+          adjustedA (into #{} (map #(+ diff %) a))]
+      (if (= adjustedA b) diff))))
+
+
+(defn findStabilizedPatern
+  ([state rules] (findStabilizedPatern state rules 0))
+  ([state rules pastIterations]
+   (let [nextState (applyOptimizedRules state rules)
+         paternShift (getPaternShift state nextState)]
+     (if paternShift
+       {:shift paternShift :iteration pastIterations :patern state}
+       (recur nextState rules (inc pastIterations))))))
+
+(def opt_rules (optimizeRules rules))
+(def paternInfo (findStabilizedPatern state opt_rules))
+
+(defn applyUsingPatern
+  [state rules target]
+  (let [paternInfo (findStabilizedPatern state rules)
+        remaining (- target (:iteration paternInfo))
+        adjustment (* remaining (:shift paternInfo))]
+    (into #{} (map #(+ adjustment %) (:patern paternInfo)))))
+
+
+(def result_part2 (reduce + (applyUsingPatern state opt_rules 50000000000)))
