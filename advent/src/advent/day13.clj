@@ -6,6 +6,7 @@
 (def raw_input (s/split (slurp "resources/input_day13") #"\n"))
 (def test_raw_input (s/split (slurp "resources/input_day13_test") #"\n"))
 (def test2_raw_input (s/split (slurp "resources/input_day13_test2") #"\n"))
+(def test3_raw_input (s/split (slurp "resources/input_day13_test3") #"\n"))
 
 (defn getNewCarDirection
   [point]
@@ -14,8 +15,8 @@
 
 (defn _pointUnderCar
   [direction left above]
-  (let [horizontal #{\< \> \- \\ \/}
-        vertical #{\^ \v \| \/ \\}]
+  (let [horizontal #{\< \> \- \\ \/ \+}
+        vertical #{\^ \v \| \/ \\ \+}]
     (if (or (and (contains? horizontal direction) (contains? vertical above))
             (and (contains? vertical direction) (contains? horizontal left)))
       \+
@@ -58,6 +59,7 @@
 (def test_input (parseInput test_raw_input))
 (def input (parseInput raw_input))
 (def test2_input (parseInput test2_raw_input))
+(def test3_input (parseInput test3_raw_input))
 
 
 (defn orderCars
@@ -139,3 +141,40 @@
          (first colisions))))))
 
 (def resultPart1 (findFirstColision (:area input) (:cars input)))
+
+; ------------------------------------- Part 2 -----------------------
+
+(defn moveCarsWithColision
+  ([track cars]
+   (moveCarsWithColision (orderCars (filter #(not (:crashed %)) cars)) track cars))
+  ([[thisCar & restCars] track currCars]
+   (if thisCar
+     (let [newPosition (moveCar (:position thisCar) (:direction thisCar))
+           newCar (updateCar thisCar newPosition track)
+           newCars (assoc currCars (:id newCar) newCar)
+           nonCrashed (filter #(not (:crashed %)) newCars)
+           colisionCars (filter #(= newPosition (:position %)) nonCrashed)]
+       (if (> (count colisionCars) 1)
+         (let [crashedCars (reduce #(assoc %1 (:id %2) (assoc %2 :crashed newPosition)) newCars colisionCars)
+               colisionCarIds (map :id colisionCars)
+               newRestCars (filter #(not (.contains colisionCarIds (:id %))) restCars)]
+           (recur newRestCars track crashedCars))
+         (recur restCars track newCars)))
+     currCars)))
+
+(defn findLastCardStanding
+  ([track cars] (findLastCardStanding track cars 0))
+  ([track cars tick]
+   (do
+     (println tick cars)
+     (let [newCars (moveCarsWithColision track cars)
+           nonCrashed (filter #(not (:crashed %)) newCars)]
+       (do
+        ;  (println newCars)
+         (if (> (count nonCrashed) 1)
+           (do
+             (println nonCrashed)
+             (recur track newCars (inc tick)))
+           nonCrashed))))))
+
+(def result_par2 (findLastCardStanding (:area input) (:cars input)))
