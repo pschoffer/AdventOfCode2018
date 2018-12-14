@@ -57,23 +57,26 @@
         scoreValues (take 10 (drop n resultRecipes))]
     (apply str scoreValues)))
 
-(def result_part1 (getScoreAfter 909441 recipe elfs))
+(time (def result_part1 (getScoreAfter 909441 recipe elfs)))
 (time (getScoreAfter 2018 recipe elfs))
 
 
 ; ------------------------ part 2 ------------------------
 
-(defn endsWith
-  ([source patern toCheck] (endsWith source patern toCheck 0))
-  ([source patern toCheck dropEnd]
-   (if (< dropEnd toCheck)
-     (let [paternLength (count patern)
-           sourceLength (count source)
-           adjustedSource (take (- sourceLength dropEnd) source)
-           endSource (drop (- (count adjustedSource) paternLength) adjustedSource)]
-       (if (= patern endSource)
-         (+ paternLength dropEnd)
-         (recur source patern toCheck (inc dropEnd)))))))
+(defn endsWithReverse
+  ([source reversePatern toCheck]
+   (loop [iter 0
+          sourceLength (count source)]
+     (if (< iter toCheck)
+       (if (endsWithReverse source reversePatern (- sourceLength iter 1) toCheck)
+         iter
+         (recur (inc iter) sourceLength)))))
+  ([source [item & restItems] sourceIx toCheck]
+   (if item
+     (if (= item (get source sourceIx))
+       (recur source restItems (- sourceIx 1) toCheck)
+       false)
+     true)))
 
 (defn getNewRecipes
   [recipe elfs]
@@ -82,17 +85,15 @@
     generatedRecipes))
 
 (defn genUntillEndsWith
-  ([wantedSeq currRecipes elfs] (genUntillEndsWith wantedSeq currRecipes elfs (last wantedSeq)))
-  ([wantedSeq currRecipes elfs lastPatern]
+  ([wantedSeq currRecipes elfs] (genUntillEndsWith wantedSeq currRecipes elfs (reverse wantedSeq)))
+  ([wantedSeq currRecipes elfs reversedPatern]
    (let [newItems (getNewRecipes currRecipes elfs)
          newRecipes (reduce #(conj %1 %2) currRecipes newItems)
          newElfs (moveElvs elfs newRecipes)]
-     (if (.contains newItems lastPatern)
-       (let [paternStart (endsWith newRecipes wantedSeq 2)]
-         (if paternStart
-           (- (count currRecipes) paternStart)
-           (recur wantedSeq newRecipes newElfs lastPatern)))
-       (recur wantedSeq newRecipes newElfs lastPatern)))))
+     (let [afterPatern (endsWithReverse newRecipes reversedPatern 2)]
+       (if afterPatern
+         (- (count newRecipes) afterPatern (count reversedPatern))
+         (recur wantedSeq newRecipes newElfs reversedPatern))))))
 
-(time (genUntillEndsWith (_parseRecipeResult 5941429882) recipe elfs))
+(time (genUntillEndsWith (_parseRecipeResult 101) recipe elfs))
 
