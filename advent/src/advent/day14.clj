@@ -58,3 +58,44 @@
     (apply str scoreValues)))
 
 (def result_part1 (getScoreAfter 909441 recipe elfs))
+(time (getScoreAfter 2018 recipe elfs))
+
+
+; ------------------------ part 2 ------------------------
+
+
+(defn getNewRecipes
+  [recipe elfs]
+  (let [sum (reduce + (map #(get recipe %) elfs))
+        generatedRecipes (_parseRecipeResult sum)]
+    generatedRecipes))
+
+
+(defn advancePatern
+  [patern candidates input]
+  (do
+    ; (println input candidates)
+    (let [required (map #(vector (nth patern (count %) input) %) (conj candidates []))
+          advancedCandidates (map #(if (= input (first %)) (conj (second %) input)) required)]
+      (into [] (filter identity advancedCandidates)))))
+
+
+(defn genUntillEndsWith
+  ([wantedSeq currRecipes elfs] (genUntillEndsWith wantedSeq currRecipes elfs []))
+  ([wantedSeq currRecipes elfs currCandidates]
+   (let [newRecipes (getNewRecipes currRecipes elfs)
+         advancers (map #(fn [cands] (advancePatern wantedSeq cands %)) (reverse newRecipes))
+         newCandidates ((apply comp advancers) currCandidates)
+         allNewRecepies (apply conj currRecipes newRecipes)
+         newElfs (moveElvs elfs allNewRecepies)
+         foundIt (first (filter #(>= (count %) (count wantedSeq)) newCandidates))]
+     (if foundIt
+       (- (count allNewRecepies) (count foundIt))
+
+       (do
+         (println newRecipes)
+         (println newCandidates)
+
+         (recur wantedSeq allNewRecepies newElfs newCandidates))))))
+
+(time (genUntillEndsWith (_parseRecipeResult 101) recipe elfs))
