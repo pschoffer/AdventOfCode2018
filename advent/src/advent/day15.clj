@@ -199,11 +199,11 @@
                   (let [hurtEnemy (assoc preferedEnemy :hp (- (:hp preferedEnemy) (:a thisUnit)))
                         newHurtAllUnits (assoc newAllUnits (:id hurtEnemy) hurtEnemy)]
                     (do
-                      (println "Moving" thisUnit (:p movedUnit))
-                      (println "Atacking" preferedEnemy (:hp hurtEnemy))
+                      ; (println "Moving" thisUnit (:p movedUnit))
+                      ; (println "Atacking" preferedEnemy (:hp hurtEnemy))
                       (recur restIds newHurtAllUnits)))
                   (do
-                    (println "Moving" thisUnit (:p movedUnit))
+                    ; (println "Moving" thisUnit (:p movedUnit))
                     (recur restIds newAllUnits)))
                 )))
           (recur restIds currAllUnits))
@@ -235,6 +235,43 @@
 (def test_input (parseInput test_raw_input))
 (def test2_input (parseInput test2_raw_input))
 
+
+; ------------------------ part 2 -------------------
+
+(defn simulateGameProElfs
+  [area units]
+  (loop [round 0
+         currUnits units]
+    (if (or (first (filter :win currUnits)) 
+            (first (filter #(and (= \E (:type %)) (not (isAlive? %))) currUnits)))
+      {:rounds (dec round) :units currUnits}
+      (let [aliveUnits (filter isAlive? currUnits)]
+        ; (println round " - " (count aliveUnits) "(" (reduce + (map :hp aliveUnits)) ")")
+        (recur (inc round) (executeRound area currUnits))))))
+
+(defn enhanceElfUnits
+  [units attack]
+  (into [] (map #(if (= \E (:type %)) (assoc % :a attack) %) units))
+  )
+
+(defn simulateAndCountProElf
+  [{area :area units :units}]
+  (let [elfCount (count (filter #(= (:type %) \E) units))]
+    (loop [attack 11]
+      (let [enhancedUnits (enhanceElfUnits units attack)
+            {rounds :rounds endUnits :units} (simulateGameProElfs area enhancedUnits)
+            elfs (filter #(and (= (:type %) \E) (isAlive? %)) endUnits)
+            orcs (filter #(and (= (:type %) \G) (isAlive? %)) endUnits)
+            survivels (count elfs)
+            survivelsOrcs (count orcs)
+            hitpoins (reduce + (map :hp elfs))
+            hitpoinsOrcs (reduce + (map :hp orcs))]
+        (println "Attack" attack survivels "(" hitpoins ")/" survivelsOrcs "(" hitpoinsOrcs ")")
+        (if (< survivels elfCount)
+          (recur (inc attack))
+          (* rounds hitpoins))))))
+
+; (simulateAndCountProElf test_input)
 ; (simulateAndCount (:area test2_input) (:units test2_input))
 
 ; (moveUnit (get (:units test_input) 4) (:area test_input) (:units test_input))
