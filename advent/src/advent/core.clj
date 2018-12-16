@@ -12,8 +12,9 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println
-   (advent.day15/simulateAndCountProElf
-    advent.day15/input)))
+  ;  (advent.day15/simulateAndCountProElf
+  ;   advent.day15/input))
+  )
 
 ; (-main)
 ; (+ 1 2)
