@@ -19,9 +19,11 @@
   [text]
   (let [[samples test] (s/split text #"\n\n\n")
         sampleLines (s/split samples #"\n\n")
-        samples (map parseSample sampleLines)]
+        samples (map parseSample sampleLines)
+        testLines (s/split test #"\n")
+        tests (map #(read-string (str "[" % "]")) (filter #(not (empty? %)) testLines))]
 ; (println parts)
-    {:samples samples}))
+    {:samples samples :test tests}))
 
 
 
@@ -131,7 +133,7 @@
 (defn getApplicable
   [sample]
   (let [apllicable (filter #(isApplicable? sample %) allOps)]
-    (map str apllicable)))
+    apllicable))
 
 (def test_sampe {:before [3, 2, 1, 1] :op [9 2 1 2] :after [3, 2, 2, 1]})
 
@@ -146,4 +148,40 @@
         (recur rest newCount))
       currCount)))
 
-(countMultiApplications (:samples input))
+; ----------------------- part 2 ----------------------------------
+
+
+(defn mapOps
+  [samples]
+  (let [initMapped (into [] (repeat 16 nil))]
+    (loop [[sample & rest] samples
+           mapped initMapped]
+      (if (some #(not (identity %)) mapped)
+        (let [opId (first (:op sample))]
+          (if (get mapped opId)
+            (recur rest mapped)
+            (let [applicables (getApplicable sample)
+                  nonMapped (filter #(not (.contains mapped %)) applicables)]
+              (if (= 1 (count nonMapped))
+                (let [newOp (first nonMapped)
+                      newMapped (assoc mapped opId newOp)]
+                  ; (println "Found" opId (map str newMapped))
+                  (recur samples newMapped))
+                (recur rest mapped)))))
+        mapped))))
+
+(def opsMap (mapOps (:samples input)))
+
+(defn execute
+  [ops lines]
+  (loop [[line & rest] lines
+         reg [0 0 0 0]]
+    (if line
+      (let [op (get ops (first line))
+            params (into [] (drop 1 line))
+            result (op params reg)]
+        ;(println line op params reg "->" result)
+        (recur rest result))
+      reg)))
+
+(execute opsMap (:test input))
