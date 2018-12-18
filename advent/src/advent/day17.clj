@@ -94,7 +94,7 @@
     (println "Flow" flow)
     (println "Settle" settled)
     ; (println "Both" (set/intersection flow settled))
-    (+ (count flow) (count settled))))
+    (count settled)))
 
 (defn printOre
   [ore]
