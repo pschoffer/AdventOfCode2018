@@ -54,7 +54,7 @@
   [lastArea size]
   (loop [[y x :as coordinate] [0 0]
          currArea {}]
-    (println "Procesing" coordinate)
+    ; (println "Procesing" coordinate)
     (if (>= y size)
       currArea
       (if (>= x size)
@@ -84,9 +84,66 @@
 
   (loop [currCount 1
          currArea area]
-    (println "\nDoing" currCount "\n")
-    (if (> currCount transCount)
-      (* (count (get currArea \|)) (count (get currArea \#)))
-      (recur (inc currCount) (transformArea currArea size)))))
+    (let [{trees \| lumberyards \#} currArea
+          treeCount (count trees)
+          lumberyardCount (count lumberyards)]
+      (println "Doing" currCount treeCount lumberyardCount)
+      (if (> currCount transCount)
+        (* (count (get currArea \|)) (count (get currArea \#)))
+        (recur (inc currCount) (transformArea currArea size))))))
 
-; (multiTransformAndSum test_area 10 10)
+
+; ------------------------------------ Part 2 ---------------------------------------------
+
+
+(defn adjustCandidates
+  [candidates item]
+  (reduce (fn [result {patternLeft :paternLeft :as candidate}]
+            (let [restPattern (rest patternLeft)]
+              (if (= item (first patternLeft))
+                (conj result (assoc candidate :paternLeft restPattern))
+                result)))
+          [] candidates))
+
+(defn findPatern
+  [area size]
+  (loop [iteration 1
+         currArea area
+         currCandidates []
+         history '()]
+    (let [{trees \| lumberyards \#} currArea
+          currCounts [(count trees) (count lumberyards)]
+          newHistory (conj history currCounts)
+          adjustedCandidates (adjustCandidates currCandidates currCounts)
+          hit (first (filter #(empty? (:paternLeft %)) adjustedCandidates))]
+      ; (println iteration currCounts)
+      ; (println currCandidates adjustedCandidates)
+      (if hit
+        hit
+        (if (.contains history currCounts)
+          (let [patternLeft (reverse (take-while #(not (= currCounts %)) history))
+                newCandidate {:it iteration
+                              :hit currCounts
+                              :paternLeft patternLeft
+                              :patern (conj patternLeft currCounts)}
+                newCoordinates (conj adjustedCandidates newCandidate)]
+            (recur (inc iteration) (transformArea currArea size) newCoordinates newHistory))
+          (recur (inc iteration) (transformArea currArea size) currCandidates newHistory))))))
+
+
+(def paternInfo (findPatern area 50))
+(def reference (multiTransformAndSum area 50 500))
+
+(defn multiTransformUsingPaternAndSum
+  [{it :it patern :patern} transCount]
+  (let [paternLength (count patern)
+        remaining (mod (inc (- transCount it)) paternLength)
+        counts (nth patern remaining)]
+    ; (println remaining patern)
+    (reduce * counts)
+    )
+  )
+
+
+; (multiTransformUsingPaternAndSum paternInfo 1000000000)
+
