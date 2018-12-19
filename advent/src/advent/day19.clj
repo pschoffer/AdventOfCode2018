@@ -41,15 +41,22 @@
 
 (defn execute
   [{meta :meta
-    program :program}]
+    program :program}
+   startReg]
   (let [ipx (executeMeta meta)]
-    (loop [regs (into [] (repeat 6 0))]
+    (loop [regs startReg]
       (let [ip (get regs ipx)]
         (if (and (>= ip 0) (< ip (count program)))
           (let [instruction (get program ip)
                 newRegs ((:op instruction) (:params instruction) regs)
                 ipUpdatedRegs (assoc newRegs ipx (inc (get newRegs ipx)))]
+            (println regs "->" newRegs "->" ipUpdatedRegs)
             (recur ipUpdatedRegs))
           regs)))))
 
-; (execute program_info)
+(defn fake
+  [top]
+  (reduce + (filter #(= 0 (mod top %))
+                    (range 1 (inc top)))))
+; (fake 10551320)
+
