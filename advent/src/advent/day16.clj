@@ -184,4 +184,3 @@
         (recur rest result))
       reg)))
 
-(execute opsMap (:test input))

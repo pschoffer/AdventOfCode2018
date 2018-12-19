@@ -12,7 +12,8 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println
-   (advent.day18/findPatern advent.day18/area 50)))
+  ;  (advent.day18/findPatern advent.day18/area 50)
+   ))
 
 ; (-main)
 ; (+ 1 2)
