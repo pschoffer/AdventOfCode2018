@@ -89,6 +89,7 @@
   (loop [currPositions #{[0 0]}
          doorCount 0
          currVisited #{}]
+    (println doorCount currPositions)
     (if (empty? currPositions)
       doorCount
       (let [newVisited (set/union currVisited currPositions)
@@ -97,3 +98,22 @@
             nonVisitedReachable (into #{} (filter #(not (contains? newVisited %)) reachable))]
         (recur nonVisitedReachable (inc doorCount) newVisited)))))
 
+
+;-------------------------------------- Part 2 --------------------------
+
+
+
+(defn roomsOverX
+  [doors x]
+  (loop [currPositions #{[0 0]}
+         doorCount 0
+         currVisited #{}
+         matchedDoors #{}]
+    (if (empty? currPositions)
+      matchedDoors
+      (let [newVisited (set/union currVisited currPositions)
+            candidates (apply concat (map getAdjecent currPositions))
+            reachable (map second (filter #(contains? doors (first %)) candidates))
+            nonVisitedReachable (into #{} (filter #(not (contains? newVisited %)) reachable))
+            newMatchedDoors (if (> doorCount x) (set/union matchedDoors currPositions) matchedDoors)]
+        (recur nonVisitedReachable (inc doorCount) newVisited newMatchedDoors)))))

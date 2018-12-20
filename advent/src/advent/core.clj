@@ -9,7 +9,7 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println
-   (d/furthestRoom d/doors)))
+   (count (d/roomsOverX d/doors 999))))
 
 
 
