@@ -1,6 +1,7 @@
 (ns advent.core
   (:gen-class)
-  (:require [advent.day20 :as d]))
+  (:require [advent.day21 :as d])
+  (:require [advent.day19 :as base]))
 
 
 
@@ -9,7 +10,7 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println
-   (count (d/roomsOverX d/doors 999))))
+   (count (base/execute d/program_info [15883666 0 0 0 0 0]))))
 
 
 
