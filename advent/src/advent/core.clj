@@ -10,7 +10,8 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println
-   (count (base/execute d/program_info [15883666 0 0 0 0 0]))))
+  ;  (count (base/execute d/program_info [0 0 0 0 0 0])
+          )))
 
 
 

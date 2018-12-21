@@ -50,7 +50,7 @@
           (let [instruction (get program ip)
                 newRegs ((:op instruction) (:params instruction) regs)
                 ipUpdatedRegs (assoc newRegs ipx (inc (get newRegs ipx)))]
-            (println "IP" ip regs "->" newRegs "->" ipUpdatedRegs)
+            (println "IP" ip (map #(Long/toString % 2) regs))
             (recur ipUpdatedRegs))
           regs)))))
 
