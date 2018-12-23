@@ -1,6 +1,6 @@
 (ns advent.core
   (:gen-class)
-  (:require [advent.day22 :as d]))
+  (:require [advent.day23 :as d]))
 
 
 
@@ -9,7 +9,7 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println
-   (d/a* d/input)))
+   (d/awesomeAlgorithm d/input)))
 
 
 
