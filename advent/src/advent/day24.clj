@@ -146,7 +146,13 @@
           armies (group-by :type liveUnits)]
       ;(println round (map #(vector (first %) (count (second %))) armies))
       (if (> (count armies) 1)
-        (recur (executeRound currUnits) (inc round))
+        (let [liveSize (reduce + (map :size liveUnits))
+              newUnits (executeRound currUnits)
+              stillLiveUnits (filter isAlive? newUnits)
+              afterRoundLiveSize (reduce + (map :size stillLiveUnits))]
+          (if (= afterRoundLiveSize liveSize)
+            {:pad true}
+            (recur newUnits (inc round))))
         (let [army (first armies)]
           {:winner (first army)
            :size (reduce + (map :size (second army)))})))))
@@ -180,5 +186,5 @@
                   newBoost (adjustment currentBoost newStep)]
               (recur newBoost newStep thisWinner))))))))
 
-(findLowestBoost test_units 100 )
+(simulateBattle (boostUnits units 33 "Immune"))
 
