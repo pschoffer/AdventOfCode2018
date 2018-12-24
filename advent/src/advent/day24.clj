@@ -144,9 +144,41 @@
          round 1]
     (let [liveUnits (filter isAlive? currUnits)
           armies (group-by :type liveUnits)]
-      (println round (map #(vector (first %) (count (second %))) armies))
+      ;(println round (map #(vector (first %) (count (second %))) armies))
       (if (> (count armies) 1)
         (recur (executeRound currUnits) (inc round))
-        currUnits))))
+        (let [army (first armies)]
+          {:winner (first army)
+           :size (reduce + (map :size (second army)))})))))
 
-; (reduce + (map :size (filter isAlive? (simulateBattle units))))
+; --------------------- part 2 -------------------------
+
+
+(defn boostUnits
+  [units boost type]
+  (into [] (map #(if (= type (:type %))
+                   (assoc % :attack (+ boost (:attack %)))
+                   %) units)))
+
+(defn findLowestBoost
+  [units initStep]
+  (let [adjustmentMap {"Inf" +, "Immune" -}]
+    (loop [currentBoost initStep
+           currentStep initStep
+           lastWinner "Inf"]
+      (let [boostedUnits (boostUnits units currentBoost "Immune")
+            result (simulateBattle boostedUnits)
+            thisWinner (:winner result)
+            adjustment (get adjustmentMap thisWinner)]
+        (println "Boost" currentBoost "step" currentStep "->" result)
+        (if (and (= currentStep 1) (= lastWinner "Inf") (= thisWinner "Immune"))
+          result
+          (if (= thisWinner lastWinner)
+            (let [nextBoost (adjustment currentBoost currentStep)]
+              (recur nextBoost currentStep thisWinner))
+            (let [newStep (int (Math/floor (/ currentStep 2)))
+                  newBoost (adjustment currentBoost newStep)]
+              (recur newBoost newStep thisWinner))))))))
+
+(findLowestBoost test_units 100 )
+
