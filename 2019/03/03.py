@@ -34,32 +34,46 @@ def adjustPosition(start, dir):
     return start
 
 
-def plot(position, directions, id):
+def plot(position, directions, id, distance):
     if directions:
         direction = directions[0]
         for i in range(0, direction["length"]):
             position = adjustPosition(position, direction["dir"])
-            addWire(position, id)
-        plot(position, directions[1:], id)
+            distance += 1
+            addWire(position, id, distance)
+        plot(position, directions[1:], id, distance)
 
 
-def addWire(position, id):
+def addWire(position, id, distance):
     if not position in area:
-        area[position] = set()
-    area[position].add(id)
+        area[position] = {}
+    if not id in area[position]:
+        area[position][id] = distance
 
 
-plot((0, 0), source[0], 'a')
-plot((0, 0), source[1], 'b')
+plot((0, 0), source[0], 'a', 0)
+plot((0, 0), source[1], 'b', 0)
 
 
 def manhatanDist(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
+# crossedWires = list(
+#     map(
+#         lambda key: (key, manhatanDist((0, 0), key)),
+#         filter(
+#             lambda key: len(area[key]) > 1,
+#             area)))
+# closest = min(crossedWires, key=lambda wireItem: wireItem[1])
+# print(closest)
+
+
+################################### part two ###########################
+
 crossedWires = list(
     map(
-        lambda key: (key, manhatanDist((0, 0), key)),
+        lambda key: (key, area[key]['a'] + area[key]['b']),
         filter(
             lambda key: len(area[key]) > 1,
             area)))
