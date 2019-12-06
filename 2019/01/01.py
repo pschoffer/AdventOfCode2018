@@ -12,5 +12,27 @@ def readInputLines(file):
 
 
 massOfModules = readInputLines("./input.txt")
-fuels = sum(map(fuelConsumption, map(int, massOfModules)))
+# fuels = sum(map(fuelConsumption, map(int, massOfModules)))
+# print(fuels)
+
+################################### part two ###########################
+
+fuelCache = dict()
+
+
+def complexFuelConsumption(mass):
+    if mass in fuelCache:
+        print(str(mass) + " - Cached!")
+        return fuelCache[mass]
+
+    baseFuel = fuelConsumption(mass)
+    totalFuel = baseFuel
+    if baseFuel > 0:
+        totalFuel += complexFuelConsumption(baseFuel)
+    fuelCache[mass] = totalFuel
+    print(str(mass) + " <- " + str(totalFuel))
+    return totalFuel
+
+
+fuels = sum(map(complexFuelConsumption, map(int, massOfModules)))
 print(fuels)
