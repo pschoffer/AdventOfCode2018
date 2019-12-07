@@ -22,15 +22,24 @@ class OperationInfo:
         self.returnValueCount = returnValueCount
 
 
+class OperationReturn:
+    value = None
+    ipJump = None
+
+    def __init__(self, value, ipJump=None):
+        self.value = value
+        self.ipJump = ipJump
+
+
 def getOp(opID):
     if opID == 1:
-        return OperationInfo(lambda a, b: a + b, 2, 1)
+        return OperationInfo(lambda a, b: OperationReturn(a + b), 2, 1)
     elif opID == 2:
-        return OperationInfo(lambda a, b: a * b, 2, 1)
+        return OperationInfo(lambda a, b: OperationReturn(a * b), 2, 1)
     elif opID == 3:
-        return OperationInfo(lambda: int(input("Give me input:")), 0, 1)
+        return OperationInfo(lambda: OperationReturn(int(input("Give me input:"))), 0, 1)
     elif opID == 4:
-        return OperationInfo(lambda a: print("Crazy output:", a), 1, 0)
+        return OperationInfo(lambda a: OperationReturn(print("Crazy output:", a)), 1, 0)
 
 
 def processOp(memory, ip):
@@ -43,7 +52,7 @@ def processOp(memory, ip):
     result = operationInfo.operation(*arguments)
     if operationInfo.returnValueCount > 0:
         targetIx = memory[ip + operationInfo.argumentCount + 1]
-        memory[targetIx] = result
+        memory[targetIx] = result.value
     return 1 + operationInfo.argumentCount + operationInfo.returnValueCount
 
 
