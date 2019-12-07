@@ -8,7 +8,7 @@ def readInput(file):
     return list(map(int, raw_input))
 
 
-memory = readInput("./input_test.txt")
+memory = readInput("./input.txt")
 
 
 class OperationInfo:
@@ -34,11 +34,12 @@ def getOp(opID):
 
 
 def processOp(memory, ip):
-    opID = memory[ip]
+    opCode = memory[ip]
+    opID = opCode % 100
     if opID == 99:
         return 0
     operationInfo = getOp(opID)
-    arguments = getArguments(memory, ip, operationInfo.argumentCount)
+    arguments = getArguments(memory, ip, operationInfo.argumentCount, opCode)
     result = operationInfo.operation(*arguments)
     if operationInfo.returnValueCount > 0:
         targetIx = memory[ip + operationInfo.argumentCount + 1]
@@ -46,21 +47,28 @@ def processOp(memory, ip):
     return 1 + operationInfo.argumentCount + operationInfo.returnValueCount
 
 
-def getArguments(memory, ip, count):
+def getArguments(memory, ip, count, opCode):
     args = []
+    argModeCode = math.floor(opCode / 100)
     for ix in range(1, count + 1):
-        args.append(memory[memory[ip + ix]])
+        mode = argModeCode % 10
+        argIx = ip + ix
+        newArgument = None
+        if mode:
+            newArgument = memory[argIx]
+        else:
+            newArgument = memory[memory[argIx]]
+        args.append(newArgument)
+
+        argModeCode = math.floor(argModeCode / 10)
     return args
 
 
 def process(memory):
     instructionPointer = 0
-    print("start", memory)
     adjustment = processOp(memory, instructionPointer)
     while adjustment != 0:
-        print("after", instructionPointer, memory)
         instructionPointer = instructionPointer + adjustment
-        print("before", instructionPointer, memory)
         adjustment = processOp(memory, instructionPointer)
 
 
