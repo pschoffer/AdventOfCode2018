@@ -10,7 +10,7 @@ def readInput(file):
     return list(map(int, raw_input))
 
 
-memory = readInput("./input_test.txt")
+memory = readInput("./input.txt")
 
 
 class OperationInfo:
