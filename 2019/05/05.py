@@ -1,4 +1,5 @@
 import math
+from enum import Enum
 
 
 def readInput(file):
@@ -8,7 +9,7 @@ def readInput(file):
     return list(map(int, raw_input))
 
 
-memory = readInput("./input.txt")
+memory = readInput("./input_test02.txt")
 
 
 class OperationInfo:
@@ -31,6 +32,27 @@ class OperationReturn:
         self.ipJump = ipJump
 
 
+class AdjustmentType(Enum):
+    ABSOLUTE = 1
+    RELATIVE = 2
+    HALT = 3
+
+
+class Adjustment:
+    adjustmentType: None
+    adjutment: None
+
+    def __init__(self, adjustmentType, adjutment):
+        self.adjustmentType = adjustmentType
+        self.adjutment = adjutment
+
+
+def _jmpTrue(a, b):
+    if a:
+        return OperationReturn(None, ipJump=b)
+    return OperationInfo(None)
+
+
 def getOp(opID):
     if opID == 1:
         return OperationInfo(lambda a, b: OperationReturn(a + b), 2, 1)
@@ -40,20 +62,31 @@ def getOp(opID):
         return OperationInfo(lambda: OperationReturn(int(input("Give me input:"))), 0, 1)
     elif opID == 4:
         return OperationInfo(lambda a: OperationReturn(print("Crazy output:", a)), 1, 0)
+    elif opID == 5:  # jmp if true
+        return OperationInfo(lambda a, b: OperationReturn(None, ipJump=b) if a else OperationReturn(None), 2, 0)
+    elif opID == 6:  # jmp if false
+        return OperationInfo(lambda a, b: OperationReturn(None, ipJump=b) if not a else OperationReturn(None), 2, 0)
+    elif opID == 7:  # less than
+        return OperationInfo(lambda a, b: OperationReturn(1) if a < b else OperationReturn(0), 2, 1)
+    elif opID == 8:  # equals
+        return OperationInfo(lambda a, b: OperationReturn(1) if a == b else OperationReturn(0), 2, 1)
 
 
 def processOp(memory, ip):
     opCode = memory[ip]
     opID = opCode % 100
     if opID == 99:
-        return 0
+        return Adjustment(AdjustmentType.HALT, None)
     operationInfo = getOp(opID)
     arguments = getArguments(memory, ip, operationInfo.argumentCount, opCode)
     result = operationInfo.operation(*arguments)
     if operationInfo.returnValueCount > 0:
         targetIx = memory[ip + operationInfo.argumentCount + 1]
-        memory[targetIx] = result.value
-    return 1 + operationInfo.argumentCount + operationInfo.returnValueCount
+        if result.value is not None:
+            memory[targetIx] = result.value
+    if result.value is None and result.ipJump is not None:
+        return Adjustment(AdjustmentType.ABSOLUTE, result.ipJump)
+    return Adjustment(AdjustmentType.RELATIVE, 1 + operationInfo.argumentCount + operationInfo.returnValueCount)
 
 
 def getArguments(memory, ip, count, opCode):
@@ -76,8 +109,8 @@ def getArguments(memory, ip, count, opCode):
 def process(memory):
     instructionPointer = 0
     adjustment = processOp(memory, instructionPointer)
-    while adjustment != 0:
-        instructionPointer = instructionPointer + adjustment
+    while adjustment.adjustmentType is not AdjustmentType.HALT:
+        instructionPointer = adjustment.adjutment if adjustment.adjustmentType is AdjustmentType.ABSOLUTE else instructionPointer + adjustment.adjutment
         adjustment = processOp(memory, instructionPointer)
 
 
