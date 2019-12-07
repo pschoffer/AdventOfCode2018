@@ -76,9 +76,14 @@ class Process():
 
     def go(self):
         adjustment = self.doStep()
-        while adjustment.adjustmentType is not AdjustmentType.HALT:
-            self.ip = adjustment.adjutment if adjustment.adjustmentType is AdjustmentType.ABSOLUTE else self.ip + adjustment.adjutment
+        while not self.isDone and not self.oStream:
+            self.doAdjustment(adjustment)
             adjustment = self.doStep()
+        if not self.isDone:
+            self.doAdjustment(adjustment)
+
+    def doAdjustment(self, adjustment):
+        self.ip = adjustment.adjutment if adjustment.adjustmentType is AdjustmentType.ABSOLUTE else self.ip + adjustment.adjutment
 
     def doStep(self):
         opCode = self.memory[self.ip]
@@ -120,6 +125,9 @@ class Process():
             return OperationInfo(lambda a, b: OperationReturn(1) if a < b else OperationReturn(0), 2, 1)
         elif opID == 8:  # equals
             return OperationInfo(lambda a, b: OperationReturn(1) if a == b else OperationReturn(0), 2, 1)
+
+    def __str__(self):
+        return "In: {}, Out: {}, {}".format(self.iStream, self.oStream, self.memory[self.ip:])
 
 
 modulePossibleValues = [0, 1, 2, 3, 4]
