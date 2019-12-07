@@ -8,7 +8,7 @@ def readInput(file):
     return list(map(int, raw_input))
 
 
-memory = readInput("./input_test02.txt")
+memory = readInput("./input_test.txt")
 
 
 class OperationInfo:
@@ -27,18 +27,30 @@ def getOp(opID):
         return OperationInfo(lambda a, b: a + b, 2, 1)
     elif opID == 2:
         return OperationInfo(lambda a, b: a * b, 2, 1)
+    elif opID == 3:
+        return OperationInfo(lambda: int(input("Give me input:")), 0, 1)
+    elif opID == 4:
+        return OperationInfo(lambda a: print("Crazy output:", a), 1, 0)
 
 
-def processOp(memory, ix):
-    opID = memory[ix]
+def processOp(memory, ip):
+    opID = memory[ip]
     if opID == 99:
         return 0
-    targetIx = memory[ix + 3]
-    aIx = memory[ix + 1]
-    bIx = memory[ix + 2]
     operationInfo = getOp(opID)
-    memory[targetIx] = operationInfo.operation(memory[aIx], memory[bIx])
+    arguments = getArguments(memory, ip, operationInfo.argumentCount)
+    result = operationInfo.operation(*arguments)
+    if operationInfo.returnValueCount > 0:
+        targetIx = memory[ip + operationInfo.argumentCount + 1]
+        memory[targetIx] = result
     return 1 + operationInfo.argumentCount + operationInfo.returnValueCount
+
+
+def getArguments(memory, ip, count):
+    args = []
+    for ix in range(1, count + 1):
+        args.append(memory[memory[ip + ix]])
+    return args
 
 
 def process(memory):
