@@ -48,51 +48,6 @@ class Adjustment:
         self.adjutment = adjutment
 
 
-inputStream = []
-outputStream = []
-
-
-def getOp(opID):
-    if opID == 1:
-        return OperationInfo(lambda a, b: OperationReturn(a + b), 2, 1)
-    elif opID == 2:
-        return OperationInfo(lambda a, b: OperationReturn(a * b), 2, 1)
-    elif opID == 3:
-        # return OperationInfo(lambda: OperationReturn(int(input("Give me input:"))), 0, 1)
-        return OperationInfo(lambda: OperationReturn(int(inputStream.pop(0))), 0, 1)
-    elif opID == 4:
-        # return OperationInfo(lambda a: OperationReturn(print(a)), 1, 0)
-        return OperationInfo(lambda a: OperationReturn(outputStream.append(a)), 1, 0)
-    elif opID == 5:  # jmp if true
-        return OperationInfo(lambda a, b: OperationReturn(None, ipJump=b) if a else OperationReturn(None), 2, 0)
-    elif opID == 6:  # jmp if false
-        return OperationInfo(lambda a, b: OperationReturn(None, ipJump=b) if not a else OperationReturn(None), 2, 0)
-    elif opID == 7:  # less than
-        return OperationInfo(lambda a, b: OperationReturn(1) if a < b else OperationReturn(0), 2, 1)
-    elif opID == 8:  # equals
-        return OperationInfo(lambda a, b: OperationReturn(1) if a == b else OperationReturn(0), 2, 1)
-
-
-def processOp(memory, ip):
-    opCode = memory[ip]
-    opID = opCode % 100
-    if opID == 99:
-        return Adjustment(AdjustmentType.HALT, None)
-
-    operationInfo = getOp(opID)
-    arguments = getArguments(memory, ip, operationInfo.argumentCount, opCode)
-
-    result = operationInfo.operation(*arguments)
-
-    if operationInfo.returnValueCount > 0:
-        targetIx = memory[ip + operationInfo.argumentCount + 1]
-        if result.value is not None:
-            memory[targetIx] = result.value
-    if result.value is None and result.ipJump is not None:
-        return Adjustment(AdjustmentType.ABSOLUTE, result.ipJump)
-    return Adjustment(AdjustmentType.RELATIVE, 1 + operationInfo.argumentCount + operationInfo.returnValueCount)
-
-
 def getArguments(memory, ip, count, opCode):
     args = []
     argModeCode = math.floor(opCode / 100)
@@ -110,12 +65,61 @@ def getArguments(memory, ip, count, opCode):
     return args
 
 
-def process(memory,):
-    instructionPointer = 0
-    adjustment = processOp(memory, instructionPointer)
-    while adjustment.adjustmentType is not AdjustmentType.HALT:
-        instructionPointer = adjustment.adjutment if adjustment.adjustmentType is AdjustmentType.ABSOLUTE else instructionPointer + adjustment.adjutment
-        adjustment = processOp(memory, instructionPointer)
+class Process():
+
+    def __init__(self, memory, iStrem, oStream):
+        self.ip = 0
+        self.memory = memory
+        self.iStream = iStrem
+        self.oStream = oStream
+        self.isDone = False
+
+    def go(self):
+        adjustment = self.doStep()
+        while adjustment.adjustmentType is not AdjustmentType.HALT:
+            self.ip = adjustment.adjutment if adjustment.adjustmentType is AdjustmentType.ABSOLUTE else self.ip + adjustment.adjutment
+            adjustment = self.doStep()
+
+    def doStep(self):
+        opCode = self.memory[self.ip]
+        opID = opCode % 100
+        if opID == 99:
+            self.isDone = True
+            return Adjustment(AdjustmentType.HALT, None)
+
+        operationInfo = self.getOp(opID)
+        arguments = getArguments(
+            self.memory, self.ip, operationInfo.argumentCount, opCode)
+
+        result = operationInfo.operation(*arguments)
+
+        if operationInfo.returnValueCount > 0:
+            targetIx = self.memory[self.ip + operationInfo.argumentCount + 1]
+            if result.value is not None:
+                self.memory[targetIx] = result.value
+        if result.value is None and result.ipJump is not None:
+            return Adjustment(AdjustmentType.ABSOLUTE, result.ipJump)
+        return Adjustment(AdjustmentType.RELATIVE, 1 + operationInfo.argumentCount + operationInfo.returnValueCount)
+
+    def getOp(self, opID):
+        if opID == 1:
+            return OperationInfo(lambda a, b: OperationReturn(a + b), 2, 1)
+        elif opID == 2:
+            return OperationInfo(lambda a, b: OperationReturn(a * b), 2, 1)
+        elif opID == 3:
+            # return OperationInfo(lambda: OperationReturn(int(input("Give me input:"))), 0, 1)
+            return OperationInfo(lambda: OperationReturn(int(self.iStream.pop(0))), 0, 1)
+        elif opID == 4:
+            # return OperationInfo(lambda a: OperationReturn(print(a)), 1, 0)
+            return OperationInfo(lambda a: OperationReturn(self.oStream.append(a)), 1, 0)
+        elif opID == 5:  # jmp if true
+            return OperationInfo(lambda a, b: OperationReturn(None, ipJump=b) if a else OperationReturn(None), 2, 0)
+        elif opID == 6:  # jmp if false
+            return OperationInfo(lambda a, b: OperationReturn(None, ipJump=b) if not a else OperationReturn(None), 2, 0)
+        elif opID == 7:  # less than
+            return OperationInfo(lambda a, b: OperationReturn(1) if a < b else OperationReturn(0), 2, 1)
+        elif opID == 8:  # equals
+            return OperationInfo(lambda a, b: OperationReturn(1) if a == b else OperationReturn(0), 2, 1)
 
 
 modulePossibleValues = [0, 1, 2, 3, 4]
@@ -139,15 +143,16 @@ allCombinations = calculateCombinations(modulePossibleValues, [])
 def run(allCombinations):
     maxValue = 0
     for combination in allCombinations:
-        outputStream.append(0)
-        for modulePhase in combination:
-            codeCopy = memory[:]
-            inputStream.append(modulePhase)
-            inputStream.append(outputStream.pop(0))
-            process(codeCopy)
-        thisValue = outputStream.pop(0)
-        print("Done: ", combination, thisValue)
-        maxValue = max(maxValue, thisValue)
+        proceses = list(map(
+            lambda phase: Process(memory[:], [phase], []),
+            combination))
+        carry = 0
+        for proces in proceses:
+            proces.iStream.append(carry)
+            proces.go()
+            carry = proces.oStream.pop(0)
+        print("Done: ", combination, carry)
+        maxValue = max(maxValue, carry)
     return maxValue
 
 
