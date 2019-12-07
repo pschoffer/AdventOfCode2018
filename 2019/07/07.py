@@ -10,7 +10,7 @@ def readInput(file):
     return list(map(int, raw_input))
 
 
-memory = readInput("./input.txt")
+memory = readInput("./input_test.txt")
 
 
 class OperationInfo:
@@ -65,6 +65,10 @@ def getArguments(memory, ip, count, opCode):
     return args
 
 
+class InputNeeded(Exception):
+    pass
+
+
 class Process():
 
     def __init__(self, memory, iStrem, oStream):
@@ -76,11 +80,9 @@ class Process():
 
     def go(self):
         adjustment = self.doStep()
-        while not self.isDone and not self.oStream:
+        while not self.isDone:
             self.doAdjustment(adjustment)
             adjustment = self.doStep()
-        if not self.isDone:
-            self.doAdjustment(adjustment)
 
     def doAdjustment(self, adjustment):
         self.ip = adjustment.adjutment if adjustment.adjustmentType is AdjustmentType.ABSOLUTE else self.ip + adjustment.adjutment
@@ -106,6 +108,11 @@ class Process():
             return Adjustment(AdjustmentType.ABSOLUTE, result.ipJump)
         return Adjustment(AdjustmentType.RELATIVE, 1 + operationInfo.argumentCount + operationInfo.returnValueCount)
 
+    def _read(self):
+        if self.iStream:
+            return OperationReturn(self.iStream.pop(0))
+        raise InputNeeded
+
     def getOp(self, opID):
         if opID == 1:
             return OperationInfo(lambda a, b: OperationReturn(a + b), 2, 1)
@@ -113,7 +120,7 @@ class Process():
             return OperationInfo(lambda a, b: OperationReturn(a * b), 2, 1)
         elif opID == 3:
             # return OperationInfo(lambda: OperationReturn(int(input("Give me input:"))), 0, 1)
-            return OperationInfo(lambda: OperationReturn(int(self.iStream.pop(0))), 0, 1)
+            return OperationInfo(self._read, 0, 1)
         elif opID == 4:
             # return OperationInfo(lambda a: OperationReturn(print(a)), 1, 0)
             return OperationInfo(lambda a: OperationReturn(self.oStream.append(a)), 1, 0)
@@ -126,11 +133,14 @@ class Process():
         elif opID == 8:  # equals
             return OperationInfo(lambda a, b: OperationReturn(1) if a == b else OperationReturn(0), 2, 1)
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
-        return "In: {}, Out: {}, {}".format(self.iStream, self.oStream, self.memory[self.ip:])
+        return "<{}> In: {}, Out: {}, {}".format(self.isDone, self.iStream, self.oStream, self.memory[self.ip:])
 
 
-modulePossibleValues = [0, 1, 2, 3, 4]
+modulePossibleValues = [5, 6, 7, 8, 9]
 
 
 def calculateCombinations(values, sofar):
@@ -151,14 +161,21 @@ allCombinations = calculateCombinations(modulePossibleValues, [])
 def run(allCombinations):
     maxValue = 0
     for combination in allCombinations:
+        print(combination)
         proceses = list(map(
             lambda phase: Process(memory[:], [phase], []),
             combination))
         carry = 0
-        for proces in proceses:
-            proces.iStream.append(carry)
-            proces.go()
-            carry = proces.oStream.pop(0)
+        while not proceses[0].isDone:
+            for proces in proceses:
+                proces.iStream.append(carry)
+                print(proces)
+                try:
+                    proces.go()
+                except InputNeeded:
+                    pass
+                print(proces)
+                carry = proces.oStream.pop(0)
         print("Done: ", combination, carry)
         maxValue = max(maxValue, carry)
     return maxValue
