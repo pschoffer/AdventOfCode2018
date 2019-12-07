@@ -61,15 +61,30 @@ def isValid(number):
     return hasSameCifer(number)
 
 
+# def hasSameCifer(number):
+#     for ix in range(1, len(number)):
+#         if number[ix] == number[ix - 1]:
+#             return True
+#     return False
+
+
+# result = findPasswords(mainRange[0], mainRange[1])
+# # Hmm wonder where that 1 is hiding
+# print("Result", len(result) + 1)
+
+################################### part two ###########################
+
+
 def hasSameCifer(number):
     for ix in range(1, len(number)):
-        if number[ix] == number[ix - 1]:
+        neighboursDiffer = (ix - 2 < 0 or number[ix - 2] != number[ix]) and (
+            ix + 1 >= len(number) or number[ix + 1] != number[ix])
+        if number[ix] == number[ix - 1] and neighboursDiffer:
             return True
     return False
 
 
-result = findPasswords(mainRange[0], mainRange[1])
-# Hmm wonder where that 1 is hiding
-print("Result", len(result) + 1)
+# print(hasSameCifer([2, 2, 2]))
 
-########
+result = findPasswords(mainRange[0], mainRange[1])
+print("Result", result, len(result))
