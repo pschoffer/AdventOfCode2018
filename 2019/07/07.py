@@ -1,5 +1,6 @@
 import math
 from enum import Enum
+import itertools
 
 
 def readInput(file):
@@ -47,15 +48,21 @@ class Adjustment:
         self.adjutment = adjutment
 
 
+inputStream = []
+outputStream = []
+
+
 def getOp(opID):
     if opID == 1:
         return OperationInfo(lambda a, b: OperationReturn(a + b), 2, 1)
     elif opID == 2:
         return OperationInfo(lambda a, b: OperationReturn(a * b), 2, 1)
     elif opID == 3:
-        return OperationInfo(lambda: OperationReturn(int(input("Give me input:"))), 0, 1)
+        # return OperationInfo(lambda: OperationReturn(int(input("Give me input:"))), 0, 1)
+        return OperationInfo(lambda: OperationReturn(int(inputStream.pop(0))), 0, 1)
     elif opID == 4:
-        return OperationInfo(lambda a: OperationReturn(print("Crazy output:", a)), 1, 0)
+        # return OperationInfo(lambda a: OperationReturn(print(a)), 1, 0)
+        return OperationInfo(lambda a: OperationReturn(outputStream.append(a)), 1, 0)
     elif opID == 5:  # jmp if true
         return OperationInfo(lambda a, b: OperationReturn(None, ipJump=b) if a else OperationReturn(None), 2, 0)
     elif opID == 6:  # jmp if false
@@ -71,9 +78,12 @@ def processOp(memory, ip):
     opID = opCode % 100
     if opID == 99:
         return Adjustment(AdjustmentType.HALT, None)
+
     operationInfo = getOp(opID)
     arguments = getArguments(memory, ip, operationInfo.argumentCount, opCode)
+
     result = operationInfo.operation(*arguments)
+
     if operationInfo.returnValueCount > 0:
         targetIx = memory[ip + operationInfo.argumentCount + 1]
         if result.value is not None:
@@ -100,7 +110,7 @@ def getArguments(memory, ip, count, opCode):
     return args
 
 
-def process(memory):
+def process(memory,):
     instructionPointer = 0
     adjustment = processOp(memory, instructionPointer)
     while adjustment.adjustmentType is not AdjustmentType.HALT:
@@ -108,7 +118,38 @@ def process(memory):
         adjustment = processOp(memory, instructionPointer)
 
 
-process(memory)
-# [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
+modulePossibleValues = [0, 1, 2, 3, 4]
 
+
+def calculateCombinations(values, sofar):
+    result = []
+    for value in filter(lambda potentialValue: potentialValue not in sofar, values):
+        newPosible = sofar[:]
+        newPosible.append(value)
+        if len(newPosible) == len(values):
+            result.append(newPosible)
+        else:
+            result.extend(calculateCombinations(values, newPosible))
+    return result
+
+
+allCombinations = calculateCombinations(modulePossibleValues, [])
+
+
+def run(allCombinations):
+    maxValue = 0
+    for combination in allCombinations:
+        outputStream.append(0)
+        for modulePhase in combination:
+            codeCopy = memory[:]
+            inputStream.append(modulePhase)
+            inputStream.append(outputStream.pop(0))
+            process(codeCopy)
+        thisValue = outputStream.pop(0)
+        print("Done: ", combination, thisValue)
+        maxValue = max(maxValue, thisValue)
+    return maxValue
+
+
+print(run(allCombinations))
 ################################### part two ###########################
