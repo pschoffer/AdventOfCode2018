@@ -37,7 +37,29 @@ const run = async () => {
     console.log(valid);
 }
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+const isValid2 = ({ password, char, range }) => {
+    const chars = password.split('');
+    const result = range
+        .map(ix => chars[ix - 1])
+        .filter(c => c === char)
+        .length;
+
+    return result === 1;
+}
+
+
+const run2 = async () => {
+    const records = (await readFileLines(inputPath)).map(parseLine);
+
+    const valid = records
+        .map(isValid2)
+        .filter(isValid => isValid)
+        .length;
+    console.log(valid);
+}
+
+run2();
