@@ -4,9 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "run",
+            "label": "runJS",
             "type": "shell",
-            "command": "cd ${relativeFileDirname} && python ${file}",
+            "command": "node ${relativeFileDirname}/*.js",
             "presentation": {
                 "echo": false,
                 "reveal": "always",
