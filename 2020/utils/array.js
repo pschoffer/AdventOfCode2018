@@ -1,3 +1,4 @@
+const { Area } = require("./area");
 
 const countOccurences = (input) => {
     const occurences = new Map();
@@ -19,7 +20,26 @@ const fitInOccurences = (items, occurences) => {
     return true;
 }
 
+const constructArea = (lines) => {
+    const map = new Map()
+
+    for (const [y, line] of lines.entries()) {
+        const lineMap = new Map();
+        const chars = line.split('');
+        for (const [x, char] of chars.entries()) {
+            lineMap.set(x, char);
+        }
+        map.set(y, lineMap);
+    }
+
+    const maxX = lines[0].length - 1;
+    const maxY = lines.length - 1;
+
+    return new Area(maxX, maxY, map);
+}
+
 module.exports = {
     countOccurences,
-    fitInOccurences
+    fitInOccurences,
+    constructArea
 }
