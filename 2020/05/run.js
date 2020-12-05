@@ -50,6 +50,26 @@ const run = async () => {
     console.log(highest);
 }
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
+
+const run2 = async () => {
+    const specifications = (await readFileLines(inputPath)).map(parseSpecification);
+    const seats = specifications.map(convertToSeat);
+
+
+    const ids = seats.map(seat => seat.id);
+    const lowest = Math.min(...ids);
+    const highest = Math.max(...ids);
+    const set = new Set(ids);
+
+    for (let current = lowest + 1; current < highest; current++) {
+        if (!set.has(current)) {
+            console.log(`maybe ${current}`);
+        }
+    }
+
+}
+
+run2();
