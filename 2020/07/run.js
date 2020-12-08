@@ -5,6 +5,7 @@ const { PathFinder } = require('../utils/path');
 
 let inputPath = path.join(__dirname, 'input.txt');
 // inputPath = path.join(__dirname, 'test.txt');
+// inputPath = path.join(__dirname, 'test2.txt');
 
 const target = 'shiny gold';
 
@@ -55,7 +56,28 @@ const run = async () => {
     console.log(matches.length);
 }
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+const countBags = (target, rules) => {
+    const bagsIn = rules[target];
+    let count = 0;
+
+    for (const bagId of Object.keys(bagsIn)) {
+        count += bagsIn[bagId];
+        count += countBags(bagId, rules) * bagsIn[bagId];
+    }
+
+    return count;
+}
+
+const run2 = async () => {
+    const inputTxt = await readFileLines(inputPath);
+    const rules = parseRules(inputTxt);
+
+    const bagCount = countBags(target, rules);
+    console.log(bagCount);
+}
+
+run2();
