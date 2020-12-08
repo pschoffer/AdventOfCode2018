@@ -12,9 +12,21 @@ class Runner {
         const state = this.recordState();
         const stateHash = this.hashState();
         if (this.history[stateHash] && this.history[stateHash].length) {
-            return;
+            return {
+                ok: false,
+                memory: this.memory,
+                ip: this.ip
+            };
         }
         this.history[stateHash] = this.history[stateHash] ? this.history[stateHash].concat([state]) : [state];
+
+        if (this.ip >= this.program.length) {
+            return {
+                ok: true,
+                memory: this.memory,
+                ip: this.ip
+            }
+        }
 
         this.runInstruction();
 

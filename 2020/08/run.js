@@ -24,12 +24,37 @@ const run = async () => {
 
     const runner = new Runner(program);
 
-    runner.execute();
 
     console.log(runner);
 }
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+const run2 = async () => {
+    const program = (await readFileLines(inputPath)).map(parseInstruction);
+    const runners = [...Array(program.length).keys()]
+        .filter(ix => program[ix].instructionCode === 'nop' || program[ix].instructionCode === 'jmp')
+        .map(ix => {
+            const newProgram = JSON.parse(JSON.stringify(program));
+            newProgram[ix].instructionCode = program[ix].instructionCode === 'nop' ? 'jmp' : 'nop';
+            return newProgram;
+        })
+        .map(program => new Runner(program));
+
+
+    let count = 1;
+    for (const runner of runners) {
+        const result = runner.execute();
+
+
+        console.log(`${count++}/${runners.length} - ${result.ok}`);
+        if (result.ok) {
+            console.log(result);
+            break;
+        }
+    }
+}
+
+run2();
