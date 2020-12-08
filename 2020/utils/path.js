@@ -3,6 +3,7 @@ class PathFinder {
         this.cache = {}
         this.missCache = {}
         this.resetSearch();
+        this.debug = false;
     }
 
     resetSearch() {
@@ -10,9 +11,16 @@ class PathFinder {
     }
 
     dijkstraAlgorithm(start, target, exploder) {
+        this.start = start;
         this.resetSearch();
         this.push([start, 0])
-        return this._dijsktraStep(target, exploder)
+        const lenght = this._dijsktraStep(target, exploder)
+        const cacheKey = `${start}_${target}`;
+        if (this.debug) {
+            console.log(`setting cache on ${cacheKey} - ${lenght}`);
+        }
+        this.cache[cacheKey] = lenght;
+        return lenght;
     }
 
     push(newItem) {
@@ -53,9 +61,14 @@ class PathFinder {
         if (top === null) {
             return null
         }
-        // console.log(`trying ${top[0]}`, this);
+        if (this.debug) {
+            console.log(`trying ${top[0]}`, this.queue);
+        }
         const cacheKey = `${top[0]}_${target}`;
         if (this.cache[cacheKey]) {
+            if (this.debug) {
+                console.log(`Hit the cache ${top[0]} - ${cacheKey}`);
+            }
             return this.cache[cacheKey] + top[1];
         }
         if (this.missCache[cacheKey]) {
@@ -69,7 +82,9 @@ class PathFinder {
             .filter(([item]) => !this.missCache[`${item}_${target}`]);
 
         if (newItems.length === 0) {
-            // this.missCache[cacheKey] = true;
+            if (this.debug) {
+                console.log(`Nothing new ${top[0]} returning null`);
+            }
             return null;
         }
 
@@ -79,6 +94,9 @@ class PathFinder {
 
         let result = this._dijsktraStep(target, exploder);
         while (result === null && this.queueSize()) {
+            if (this.debug) {
+                console.log(`Got null ${top[0]} checking more`);
+            }
             result = this._dijsktraStep(target, exploder);
         }
         if (result === null) {
@@ -86,7 +104,6 @@ class PathFinder {
 
             // console.log(`Missed ${top[0]}`, this);
         } else {
-            this.cache[cacheKey] = result - top[1];
 
             // console.log(`found ${top[0]}`, this);
             return result;

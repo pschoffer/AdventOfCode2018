@@ -40,18 +40,19 @@ const run = async () => {
 
     const pathFiner = new PathFinder();
 
-    let count = 0;
+    const matches = [];
     for (const bagIdentifier of Object.keys(rules)) {
+
         const length = pathFiner.dijkstraAlgorithm(bagIdentifier, target, (idToExplode, distance) => {
             return Object.keys(rules[idToExplode]).map((newId) => [newId, distance + 1]);
         })
-        console.log(`${bagIdentifier} - ${length}\n`);
 
         if (length) {
-            count++;
+            matches.push([bagIdentifier, length]);
         }
     }
-    console.log(count);
+
+    console.log(matches.length);
 }
 
 run();
