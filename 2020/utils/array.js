@@ -20,6 +20,15 @@ const fitInOccurences = (items, occurences) => {
     return true;
 }
 
+const updateOccurences = (occurences, item, change) => {
+    const newValue = (occurences.get(item) || 0) + change;
+    if (newValue > 0) {
+        occurences.set(item, newValue);
+    } else {
+        occurences.delete(item);
+    }
+}
+
 const constructArea = (lines) => {
     const map = new Map()
 
@@ -41,5 +50,6 @@ const constructArea = (lines) => {
 module.exports = {
     countOccurences,
     fitInOccurences,
+    updateOccurences,
     constructArea
 }
