@@ -1,4 +1,5 @@
 const path = require('path');
+const array = require('../utils/array');
 const { countOccurences, updateOccurences } = require('../utils/array');
 const { readFileLines } = require('../utils/file');
 
@@ -34,12 +35,45 @@ const run = async () => {
             }
         }
         if (!match) {
-            console.log(`${element} - NOT found`);
+            return {
+                allNumbers,
+                element
+            }
         }
     }
 }
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+
+const run2 = async () => {
+    const { allNumbers, element: target } = await run();
+
+    let currentSum = 0;
+    let currentOccurences = new Map();
+    let currentLowestIx = 0;
+    for (let ix = 0; ix < allNumbers.length; ix++) {
+        currentSum += allNumbers[ix];
+        updateOccurences(currentOccurences, allNumbers[ix], 1);
+
+        while (currentSum > target) {
+            const lowest = allNumbers[currentLowestIx];
+            currentSum -= lowest;
+            updateOccurences(currentOccurences, lowest, -1);
+            currentLowestIx++;
+        }
+
+        if (currentSum === target) {
+            console.log("FOUND IT", currentSum, currentOccurences, currentLowestIx);
+            break;
+        }
+    }
+
+    const additionNumbers = [...currentOccurences.keys()].sort();
+    const result = additionNumbers[0] + additionNumbers[additionNumbers.length - 1];
+    console.log(result);
+}
+
+run2();
