@@ -62,7 +62,60 @@ const step = (area) => {
 }
 
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+const run2 = async () => {
+    const lines = (await readFileLines(inputPath));
+
+    const area = constructArea(lines);
+
+    let pointsChanged = step2(area);
+    let stepIx = 1;
+    while (pointsChanged.length) {
+        console.log(`Step ${stepIx++}: ${pointsChanged.length}`);
+        pointsChanged = step2(area);
+    }
+
+    area.print();
+
+    console.log(area.countValue(SEAT_OCCUPIED));
+}
+
+
+const step2 = (area) => {
+
+    const pointsToSet = [];
+    for (const point of area.pointIterator()) {
+        const currentValue = area.getPointValue(point);
+        if (currentValue === FLOOR) {
+            continue;
+        }
+        const neighbours = area.getNeighbours(point, { includeDiagonal: true, extendDirection: true, extendDirectionStop: [SEAT_OCCUPIED, SEAT_EMPTY] });
+
+        const neighbourValues = area.getPointValues(neighbours);
+        const occupiedCount = neighbourValues.filter(v => v === SEAT_OCCUPIED).length;
+
+        // if (point.y === 7 && point.x === 9) {
+        //     console.log("Checking", point)
+        //     console.log(neighbours, neighbourValues, occupiedCount);
+        // }
+
+        if (currentValue === SEAT_EMPTY && occupiedCount === 0) {
+            pointsToSet.push([point, SEAT_OCCUPIED]);
+        } else if (currentValue === SEAT_OCCUPIED && occupiedCount > 4) {
+            pointsToSet.push([point, SEAT_EMPTY]);
+        }
+    }
+
+
+    for (const [point, newValue] of pointsToSet) {
+        area.setPointValue(point, newValue);
+    }
+
+    return pointsToSet.map(([point]) => point);
+}
+
+
+run2();

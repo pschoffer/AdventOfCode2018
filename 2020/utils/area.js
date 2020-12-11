@@ -18,6 +18,7 @@ class Area {
         this.maxY = maxY;
         this.map = map;
         this.cornerPoint = new Point(maxX, maxY);
+        this.cache = new Map();
     }
 
     setPointValue(point, value) {
@@ -59,13 +60,57 @@ class Area {
         return points;
     }
 
-    getNeighbours(point, { includeDiagonal } = { includeDiagonal: false }) {
+    getNeighbours(point, { includeDiagonal, extendDirection, extendDirectionStop } = { includeDiagonal: false, extendDirection: false, extendDirectionStop: [] }) {
+        const cacheKey = `neighbour_${point.x}_${point.y}`;
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey);
+        }
+
+        let neighbours;
         const adjustments = includeDiagonal ? directExploder.concat(diagonalExploder) : directExploder;
-        const candidates = adjustments
-            .map(([x, y]) => new Point(x, y))
-            .map(adj => point.adjust(adj, { cornerPointHigh: this.cornerPoint, cornerPointLow: new Point(0, 0) }))
-            .filter(p => !!p);
-        return candidates;
+
+        if (extendDirection) {
+            let shifter = 0;
+            let remainingAdjustments = [...adjustments];
+            neighbours = [];
+            while (remainingAdjustments.length) {
+                let newRemainingAdjustments = [];
+
+                for (const adjustmentBase of remainingAdjustments) {
+                    const adjustment = adjustmentBase.map(coordinate => coordinate ? coordinate + (shifter * coordinate) : coordinate);
+                    const adjustmentPoint = new Point(adjustment[0], adjustment[1]);
+                    const adjustedPoint = point.adjust(adjustmentPoint, { cornerPointHigh: this.cornerPoint, cornerPointLow: new Point(0, 0) });
+
+
+
+                    if (adjustedPoint) {
+                        if (extendDirectionStop.includes(this.getPointValue(adjustedPoint))) {
+                            neighbours.push(adjustedPoint)
+                        } else {
+                            newRemainingAdjustments.push(adjustmentBase);
+                        }
+                    }
+
+
+                    // if (point.y === 7 && point.x === 9) {
+                    //     console.log("Checking Neighbours", point)
+                    //     console.log(shifter, adjustment, neighbours, newRemainingAdjustments);
+                    // }
+                }
+
+                shifter++;
+                remainingAdjustments = newRemainingAdjustments;
+            }
+
+        } else {
+            neighbours = adjustments
+                .map(([x, y]) => new Point(x, y))
+                .map(adj => point.adjust(adj, { cornerPointHigh: this.cornerPoint, cornerPointLow: new Point(0, 0) }))
+                .filter(p => !!p);
+        }
+
+        this.cache.set(cacheKey, neighbours);
+        return neighbours;
     }
 
     countValue(value) {
