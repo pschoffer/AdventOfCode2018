@@ -86,14 +86,14 @@ const isFieldValid = (field, value, condition) => {
     if (Object.keys(condition).length) {
         if (condition.reg) {
             if (!value.match(condition.reg)) {
-                console.error(`Doesnt match reg ${field}: ${value}`);
+                // console.error(`Doesnt match reg ${field}: ${value}`);
                 return false;
             }
         }
         if (condition.range) {
             const numValue = Number(value);
             if (numValue < condition.range[0] || numValue > condition.range[1]) {
-                console.error(`Doesnt match range ${field}: ${value}`);
+                // console.error(`Doesnt match range ${field}: ${value}`);
                 return false
             }
         }
@@ -102,7 +102,7 @@ const isFieldValid = (field, value, condition) => {
             const num = Number(numberPart);
 
             if (num === NaN || num < condition.cmRange[0] || num > condition.cmRange[1]) {
-                console.error(`Doesnt match CMrange ${field}: ${value}`);
+                // console.error(`Doesnt match CMrange ${field}: ${value}`);
                 return false
             }
         }
@@ -112,14 +112,14 @@ const isFieldValid = (field, value, condition) => {
             const num = Number(numberPart);
 
             if (num === NaN || num < condition.inRange[0] || num > condition.inRange[1]) {
-                console.error(`Doesnt match inrange ${field}: ${value}`);
+                // console.error(`Doesnt match inrange ${field}: ${value}`);
                 return false
             }
         }
 
     } else {
         if (!value.match(condition)) {
-            console.error(`Doesnt match plain reg ${field}: ${value}`);
+            // console.error(`Doesnt match plain reg ${field}: ${value}`);
             return false;
         }
     }

@@ -135,7 +135,7 @@ class Point {
         this.y = y;
     }
 
-    adjust(adjustment, { cornerPointHigh, cornerPointLow, wrapX = false }) {
+    adjust(adjustment, { cornerPointHigh, cornerPointLow, wrapX = false } = {}) {
         const adjusted = new Point(this.x + adjustment.x, this.y + adjustment.y);
         if (cornerPointHigh) {
             const isOverX = adjusted.x > cornerPointHigh.x;
@@ -159,6 +159,18 @@ class Point {
 
 
         return adjusted;
+    }
+
+    manhaton(from = new Point(0, 0)) {
+        return Math.abs(this.x - from.x) + Math.abs(this.y - from.y);
+    }
+
+    multiply(multiplier) {
+        return new Point(this.x * multiplier, this.y * multiplier);
+    }
+
+    toString() {
+        return `[${this.x}, ${this.y}]`;
     }
 }
 
