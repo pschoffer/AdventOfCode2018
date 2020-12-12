@@ -1,5 +1,6 @@
 const each = require('jest-each').default;
-const { Ship, parseInstr } = require('./run')
+const { Ship, ShipWithWaypoint, parseInstr } = require('./run')
+const { Point } = require('../utils/area');
 
 
 describe("Day12 ", () => {
@@ -62,5 +63,40 @@ describe("Day12 ", () => {
         expect(ship.directionIx).toBe(expected);
     });
 
+
+    each([
+        [
+            new Point(10, 5),
+            'L90',
+            new Point(5, -10),
+        ],
+        [
+            new Point(10, 5),
+            'L180',
+            new Point(-10, -5),
+        ],
+        [
+            new Point(10, 5),
+            'L270',
+            new Point(-5, 10),
+        ],
+        [
+            new Point(10, 5),
+            'R90',
+            new Point(-5, 10),
+        ],
+        [
+            new Point(10, 5),
+            'R450',
+            new Point(-5, 10),
+        ]
+    ]).test('Test WAYPOINT L/R %p %p', (waypoint, instr, expected) => {
+        const ship = new ShipWithWaypoint()
+        ship.waypoint = waypoint;
+
+        ship.processInstruction(parseInstr(instr));
+
+        expect(`${ship.waypoint}`).toBe(`${expected}`);
+    });
 
 });

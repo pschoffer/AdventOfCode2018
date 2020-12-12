@@ -169,6 +169,19 @@ class Point {
         return new Point(this.x * multiplier, this.y * multiplier);
     }
 
+    multiplyPoint(multiplier) {
+        return new Point(this.x * multiplier.x, this.y * multiplier.y);
+    }
+
+    abs() {
+        return new Point(Math.abs(this.x), Math.abs(this.y));
+    }
+
+
+    switch() {
+        return new Point(this.y, this.x);
+    }
+
     toString() {
         return `[${this.x}, ${this.y}]`;
     }
