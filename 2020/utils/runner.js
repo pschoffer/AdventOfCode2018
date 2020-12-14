@@ -1,3 +1,5 @@
+const binarySize = Math.pow(2, 28);
+
 class Runner {
 
     constructor(program) {
@@ -5,6 +7,7 @@ class Runner {
         this.ip = 0;
         this.memory = {}
         this.history = {}
+        this.mask = null;
     }
 
     execute() {
@@ -44,11 +47,71 @@ class Runner {
             case 'acc':
                 this.memory[0] = (this.memory[0] || 0) + args[0];
                 break;
+            case 'mask':
+                this.mask = this.parseMask(args[0]);
+                break;
+            case 'mem':
+                this.memory[args[0]] = this.maybeApplyMask(args[1]);
+                break;
             default:
                 break;
         }
 
         this.ip = this.ip + ipJump;
+    }
+
+    maybeApplyMask(input) {
+        if (this.mask) {
+            const inputParts = this._bitsizeSplit(input);
+
+            const result = {
+                lower: (this.mask.andMask.lower & inputParts.lower) | this.mask.orMask.lower,
+                higher: (this.mask.andMask.higher & inputParts.higher) | this.mask.orMask.higher,
+            }
+            return this._bitsizeUnsplit(result);
+        }
+        return input;
+    }
+
+
+    _bitsizeUnsplit(input) {
+        return input.higher * binarySize + input.lower;
+    }
+
+    _bitsizeSplit(input) {
+        return {
+            higher: Math.floor(input / binarySize),
+            lower: input % binarySize
+        }
+    }
+
+    parseMask(mask) {
+        const chars = mask.split("");
+        let postition = 0;
+        let orMask = 0;
+        let andMask = 0;
+        for (let ix = chars.length - 1; ix >= 0; ix--) {
+            const element = chars[ix];
+            const shifter = Math.pow(2, postition);
+            postition++;
+            switch (element) {
+                case 'x':
+                case 'X':
+                    andMask += shifter;
+                    break;
+                case '1':
+                    andMask += shifter;
+                    orMask += shifter;
+                case '0':
+                default:
+                    break;
+            }
+        }
+
+        return {
+            andMask: this._bitsizeSplit(andMask),
+            orMask: this._bitsizeSplit(orMask)
+        }
     }
 
     recordState() {
