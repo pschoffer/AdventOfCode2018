@@ -8,6 +8,7 @@ const { Runner } = require('../utils/runner');
 
 let inputPath = path.join(__dirname, 'input.txt');
 // inputPath = path.join(__dirname, 'test.txt');
+// inputPath = path.join(__dirname, 'test2.txt');
 
 
 const parseInst = (line) => {
@@ -42,7 +43,21 @@ const run = async () => {
 
 
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+const run2 = async () => {
+    const instr = (await readFileLines(inputPath)).map(parseInst
+    );
+
+    const runner = new Runner(instr, { maskVersion: 2 });
+    const resultRun = runner.execute();
+
+    const result = sumArr(Object.keys(runner.memory).map(key => runner.memory[key]));
+    console.log(result);
+}
+
+
+
+run2();

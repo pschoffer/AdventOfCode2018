@@ -2,12 +2,13 @@ const binarySize = Math.pow(2, 28);
 
 class Runner {
 
-    constructor(program) {
+    constructor(program, options = { maskVersion: 1 }) {
         this.program = program;
         this.ip = 0;
         this.memory = {}
         this.history = {}
         this.mask = null;
+        this.options = options
     }
 
     execute() {
@@ -51,7 +52,9 @@ class Runner {
                 this.mask = this.parseMask(args[0]);
                 break;
             case 'mem':
-                this.memory[args[0]] = this.maybeApplyMask(args[1]);
+                const addresses = this.maybeApplyAddressMask(args[0])
+                const value = this.maybeApplyMask(args[1]);
+                addresses.forEach(addr => this.memory[addr] = value);
                 break;
             default:
                 break;
@@ -60,8 +63,55 @@ class Runner {
         this.ip = this.ip + ipJump;
     }
 
+    maybeApplyAddressMask(input) {
+
+        if (this.mask && this.options.maskVersion === 2) {
+            const inputParts = this._bitsizeSplit(input);
+
+
+            const addrAfterOr = this._or(inputParts, this.mask.orMask)
+            if (this.mask.floatBits.length) {
+                const addresses = [];
+
+                const highest = this._bitsizeSplit(Math.max(...this.mask.floatBits.map(this._bitsizeUnsplit)))
+                const cleared = this._bitsizeUnsplit(this._and(addrAfterOr, this._not(highest)))
+
+                for (const floatBit of this.mask.floatBits) {
+                    addresses.push(cleared + this._bitsizeUnsplit(floatBit));
+                }
+
+                return addresses;
+            } else {
+                return [this._bitsizeUnsplit(addrAfterOr)]
+            }
+
+        }
+
+
+        return [input]
+    }
+
+    _or(a, b) {
+        return {
+            lower: a.lower | b.lower,
+            higher: a.higher | b.higher,
+        }
+    }
+
+    _and(a, b) {
+        return {
+            lower: a.lower & b.lower,
+            higher: a.higher & b.higher,
+        }
+    }
+    _not(a) {
+        return {
+            lower: ~a.lower,
+            higher: ~a.higher,
+        }
+    }
     maybeApplyMask(input) {
-        if (this.mask) {
+        if (this.mask && this.options.maskVersion === 1) {
             const inputParts = this._bitsizeSplit(input);
 
             const result = {
@@ -70,6 +120,7 @@ class Runner {
             }
             return this._bitsizeUnsplit(result);
         }
+
         return input;
     }
 
@@ -90,6 +141,7 @@ class Runner {
         let postition = 0;
         let orMask = 0;
         let andMask = 0;
+        let floatBits = [];
         for (let ix = chars.length - 1; ix >= 0; ix--) {
             const element = chars[ix];
             const shifter = Math.pow(2, postition);
@@ -97,6 +149,11 @@ class Runner {
             switch (element) {
                 case 'x':
                 case 'X':
+                    if (floatBits.length) {
+                        floatBits = floatBits.concat(floatBits.map(prev => prev + shifter));
+                    } else {
+                        floatBits = [shifter, 0];
+                    }
                     andMask += shifter;
                     break;
                 case '1':
@@ -108,10 +165,19 @@ class Runner {
             }
         }
 
-        return {
-            andMask: this._bitsizeSplit(andMask),
-            orMask: this._bitsizeSplit(orMask)
+        if (this.options.maskVersion === 1) {
+
+            return {
+                andMask: this._bitsizeSplit(andMask),
+                orMask: this._bitsizeSplit(orMask),
+            }
+        } else {
+            return {
+                orMask: this._bitsizeSplit(orMask),
+                floatBits: floatBits.map(bit => this._bitsizeSplit(bit))
+            }
         }
+
     }
 
     recordState() {
