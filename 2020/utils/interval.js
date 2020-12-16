@@ -27,6 +27,14 @@ class Interval {
         return new Interval(this.midpoint + 1, this.bounds[1]);
     }
 
+    contains(number) {
+        return number <= this.bounds[1] && number >= this.bounds[0];
+    }
+
+    toString() {
+        return `${this.bounds[0]}-${this.bounds[1]}`
+    }
+
 }
 
 module.exports = {
