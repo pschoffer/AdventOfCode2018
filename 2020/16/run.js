@@ -4,11 +4,12 @@ const array = require('../utils/array');
 const { constructArea } = require('../utils/array');
 const { readFileLines } = require('../utils/file');
 const { Interval } = require('../utils/interval');
-const { sumArr } = require('../utils/math');
+const { sumArr, mulArr } = require('../utils/math');
 const { progress } = require('../utils/print');
 
 let inputPath = path.join(__dirname, 'input.txt');
 // inputPath = path.join(__dirname, 'test.txt');
+// inputPath = path.join(__dirname, 'test2.txt');
 
 const parseInput = (lines) => {
     const data = {
@@ -106,6 +107,87 @@ const run = async () => {
 
 
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
+
+const isTicketValid = (ticket, combinedConditions) => {
+    for (const value of ticket) {
+        const match = combinedConditions
+            .filter(cond => cond.contains(value));
+        if (!match.length) {
+            return false;
+        }
+    }
+    return true;
+}
+
+const doValuesMatchAnyConditions = (values, conditions) => {
+    for (const value of values) {
+        const match = conditions.filter(cond => cond.contains(value));
+        if (!match.length) {
+            return false;
+        }
+    }
+    return true;
+}
+
+const run2 = async () => {
+    const lines = (await readFileLines(inputPath))
+    const data = parseInput(lines);
+
+    const combinedConditions = unifyConditions(data.fields)
+
+    const validTickets = data.rest.filter(ticket => isTicketValid(ticket, combinedConditions));
+
+    const allFields = Object.keys(data.fields);
+    const fieldCandidates = allFields.map(field => new Set(allFields));
+    const hitFields = allFields.map(field => null);
+    let ixToHit = [...Array(hitFields.length).keys()];
+    const valuesPerField = ixToHit.map(ix => validTickets.map(ticket => ticket[ix]));
+
+
+    for (const ix of ixToHit) {
+        const candidates = fieldCandidates[ix];
+        const values = valuesPerField[ix];
+
+        for (const candidate of candidates) {
+            const conditions = data.fields[candidate];
+            const match = doValuesMatchAnyConditions(values, conditions)
+            if (!match) {
+                fieldCandidates[ix].delete(candidate)
+            }
+        }
+    }
+
+    while (ixToHit.length) {
+        // console.log("Cleanign up", ixToHit.length, hitFields.length);
+
+        let toClear = [];
+        for (const ix of ixToHit) {
+            if (fieldCandidates[ix].size === 1) {
+                const hit = fieldCandidates[ix].values().next().value;
+                toClear.push(ix)
+                hitFields[ix] = hit;
+                ixToHit.forEach(otherIx => fieldCandidates[otherIx].delete(hit))
+            }
+        }
+        ixToHit = ixToHit.filter(ix => !toClear.includes(ix));
+    }
+
+
+    const valuesToMul = []
+    for (let ix = 0; ix < hitFields.length; ix++) {
+        if (hitFields[ix].startsWith("departure")) {
+            console.log(`${hitFields[ix]}: ${data.your[ix]}`);
+            valuesToMul.push(data.your[ix]);
+        }
+
+    }
+    console.log(mulArr(valuesToMul))
+
+}
+
+
+
+run2();
