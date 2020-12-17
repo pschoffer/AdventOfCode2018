@@ -1,8 +1,10 @@
 const each = require('jest-each').default;
-const { Area3D } = require('./area')
+const { Area3D, PointXD } = require('./area')
 
 
 describe("Area3D ", () => {
+
+
 
 
     const line0 = new Map();
@@ -21,6 +23,12 @@ describe("Area3D ", () => {
     baseLayer.set(0, line0)
     baseLayer.set(1, line1)
     baseLayer.set(2, line2)
+
+
+    const oneItemline = new Map();
+    oneItemline.set(0, '#')
+    const oneItemLayer = new Map();
+    oneItemLayer.set(0, oneItemline);
 
     each([
         [
@@ -66,6 +74,138 @@ describe("Area3D ", () => {
         const dimensions = ['z', 'y', 'x'];
         expect(dimensions.map(d => area.bounds.min[d])).toStrictEqual(expectedMin)
         expect(dimensions.map(d => area.bounds.max[d])).toStrictEqual(expectedMax)
+    });
+
+    each([
+        [
+            baseLayer,
+            {},
+            [
+                new PointXD(1, 1, 0),
+                new PointXD(2, 2, 0),
+            ]
+        ],
+        [
+            baseLayer,
+            { useBounds: true },
+            [
+                new PointXD(1, 1, 0),
+                new PointXD(2, 1, 0),
+                new PointXD(1, 2, 0),
+                new PointXD(2, 2, 0),
+            ]
+        ],
+        [
+            oneItemLayer,
+            { useBounds: true, boundsAdjustment: 1 },
+            [
+                new PointXD(-1, -1, -1),
+                new PointXD(0, -1, -1),
+                new PointXD(1, -1, -1),
+
+                new PointXD(-1, 0, -1),
+                new PointXD(0, 0, -1),
+                new PointXD(1, 0, -1),
+
+                new PointXD(-1, 1, -1),
+                new PointXD(0, 1, -1),
+                new PointXD(1, 1, -1),
+
+
+                new PointXD(-1, -1, 0),
+                new PointXD(0, -1, 0),
+                new PointXD(1, -1, 0),
+
+                new PointXD(-1, 0, 0),
+                new PointXD(0, 0, 0),
+                new PointXD(1, 0, 0),
+
+                new PointXD(-1, 1, 0),
+                new PointXD(0, 1, 0),
+                new PointXD(1, 1, 0),
+
+
+                new PointXD(-1, -1, 1),
+                new PointXD(0, -1, 1),
+                new PointXD(1, -1, 1),
+
+                new PointXD(-1, 0, 1),
+                new PointXD(0, 0, 1),
+                new PointXD(1, 0, 1),
+
+                new PointXD(-1, 1, 1),
+                new PointXD(0, 1, 1),
+                new PointXD(1, 1, 1),
+            ]
+        ]
+    ]).test('iterate with removal %p %p', (map, options, expectedPoints) => {
+        const area = new Area3D();
+        area.add2DArea(map, 0);
+
+        area.remove('.');
+
+        const points = area.iterate(options).map(([point]) => point);
+        expect(points.length).toStrictEqual(expectedPoints.length);
+
+        for (let ix = 0; ix < expectedPoints.length; ix++) {
+            expect(points[ix].coordinate).toStrictEqual(expectedPoints[ix].coordinate);
+
+        }
+    });
+});
+
+
+describe("PointXD ", () => {
+
+
+    each([
+        [
+            [0, 1, 2, 3],
+            'x',
+            0
+        ],
+
+        [
+            [0, 1, 2, 3],
+            'z',
+            2
+        ]
+    ]).test('getter %p %p', (coordinates, dimension, expected) => {
+        const point = new PointXD(...coordinates);
+
+        const result = point[dimension];
+
+        expect(result).toStrictEqual(expected);
+    });
+
+    each([
+
+        [
+            [5],
+            [
+                [4],
+                [6]
+            ]
+        ],
+        [
+            [0, 0],
+            [
+                [-1, -1],
+                [0, -1],
+                [1, -1],
+                [-1, 0],
+                [1, 0],
+                [-1, 1],
+                [0, 1],
+                [1, 1],
+            ]
+        ],
+    ]).test('neighbours %p %p', (coordinates, expected) => {
+        const point = new PointXD(...coordinates);
+
+        const result = point.neighbours();
+
+        expect(result.map(r => r.coordinate)).toStrictEqual(expected);
     });
 
 

@@ -35,8 +35,26 @@ class Interval {
         return `${this.bounds[0]}-${this.bounds[1]}`
     }
 
+    range() {
+        const range = [];
+        for (let item = this.bounds[0]; item <= this.bounds[1]; item++) {
+            range.push(item);
+
+        }
+        return range;
+    }
+}
+
+const range = (...args) => {
+    let interval = new Interval(...args);
+    if (args.length === 1) {
+        interval = new Interval(args[0] + 1);
+
+    }
+    return interval.range();
 }
 
 module.exports = {
-    Interval
+    Interval,
+    range
 }

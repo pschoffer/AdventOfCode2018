@@ -1,3 +1,4 @@
+const { range } = require("./interval");
 
 const directExploder = [
     [-1, 0],
@@ -162,25 +163,39 @@ class Area3D {
         this.updateAllBounds();
     }
 
-    iterate() {
+    iterate({ useBounds = false, boundsAdjustment = 0 } = {}) {
         const allPoints = [];
-        const zKeys = [...this.map.keys()]
+        const boundKeys = {}
+        const coordinates = ['x', 'y', 'z'];
+        coordinates.forEach(coordinate => boundKeys[coordinate] = range(this.bounds.min[coordinate] - boundsAdjustment, this.bounds.max[coordinate] + boundsAdjustment))
+        const zKeys = useBounds ? boundKeys.z : [...this.map.keys()]
         zKeys.sort();
 
         for (const z of zKeys) {
-            const yKeys = [...this.map.get(z).keys()]
+            const yKeys = useBounds ? boundKeys.y : [...this.map.get(z).keys()]
             yKeys.sort();
             for (const y of yKeys) {
-                const xKeys = [...this.map.get(z).get(y).keys()]
+                const xKeys = useBounds ? boundKeys.x : [...this.map.get(z).get(y).keys()]
                 xKeys.sort();
                 for (const x of xKeys) {
-                    allPoints.push([new Point3D(z, y, x), this.map.get(z).get(y).get(x)]);
+                    const value = this.map.get(z) && this.map.get(z).get(y) && this.map.get(z).get(y).get(x)
+                    allPoints.push([new PointXD(x, y, z), value]);
                 }
             }
         }
 
 
         return allPoints;
+    }
+
+    addPoint(point, value) {
+        if (!this.map.has(point.z)) {
+            this.map.set(point.z, new Map());
+        }
+        if (!this.map.get(point.z).has(point.y)) {
+            this.map.get(point.z).set(point.y, new Map());
+        }
+        this.map.get(point.z).get(point.y).set(point.x, value);
     }
 
     removePoint(point) {
@@ -191,6 +206,10 @@ class Area3D {
                 this.map.delete(point.z)
             }
         }
+    }
+
+    get(point) {
+        return this.map.get(point.z) && this.map.get(point.z).get(point.y) && this.map.get(point.z).get(point.y).get(point.x)
     }
 
     remove(value) {
@@ -216,15 +235,37 @@ class Area3D {
     }
 
     print() {
-        const keys = [...this.map.keys()]
-        keys.sort();
+        const points = this.iterate({ useBounds: true });
+        let currentZ = null;
+        let currentY = null;
+        let currentLine = "";
+        for (const [point, value] of points) {
+            if (point.z !== currentZ) {
+                if (currentLine) {
+                    console.log(currentLine);
+                    currentLine = null;
+                }
+                console.log("\nLayer z: ", point.z);
+                const legend = range(this.bounds.min.y, this.bounds.max.y)
+                    .map(ix => ix >= 10 ? `${ix}` : `${ix} `)
+                    .join(" ");
+                console.log("    " + legend);
+                currentZ = point.z
+                currentY = null;
+            }
+            if (point.y !== currentY) {
+                if (currentLine) {
+                    console.log(currentLine);
+                }
+                currentLine = point.y >= 10 ? `${point.y} ` : `${point.y}  `;
+                currentY = point.y;
+            }
+            currentLine += ` ${value || '.'} `;
 
-        for (const key of keys) {
-            console.log("Z ix: " + key);
-            this.map.get(key).print();
-            console.log("\n");
         }
+        console.log(currentLine);
     }
+
 }
 
 class Point {
@@ -286,17 +327,65 @@ class Point {
 }
 
 
-class Point3D {
-    constructor(z, y, x) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+class PointXD {
+    constructor(...args) {
+        this.coordinate = args;
     }
 
+    get x() {
+        return this.coordinate[0];
+    }
+
+    get y() {
+        return this.coordinate[1];
+    }
+
+    get z() {
+        return this.coordinate[2];
+    }
+
+    isSame(point) {
+        if (this.coordinate.length !== point.coordinate.length) {
+            return false;
+        }
+
+        for (let ix = 0; ix < this.coordinate.length; ix++) {
+            if (this.coordinate[ix] !== point.coordinate[ix]) {
+                return false;
+            }
+
+        }
+        return true;
+    }
+
+    neighbours() {
+        let neighbours = [];
+        for (const co of this.coordinate) {
+            if (neighbours.length) {
+                neighbours = [-1, 0, 1]
+                    .map(adj => {
+                        return neighbours
+                            .map(existing => {
+                                return existing.concat([co + adj]);
+                            })
+                    })
+                    .reduce((prev, curr) => prev.concat(curr), [])
+            } else {
+                neighbours = [[co - 1], [co], [co + 1]]
+            }
+        }
+
+        const neighbourPoints = neighbours
+            .map(co => new PointXD(...co))
+            .filter(co => !this.isSame(co));
+
+        return neighbourPoints;
+    }
 }
 
 module.exports = {
     Area,
     Area3D,
-    Point
+    Point,
+    PointXD
 }
