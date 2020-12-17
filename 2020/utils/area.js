@@ -124,9 +124,107 @@ class Area {
 
         return count;
     }
+}
 
 
+class Area3D {
+    constructor() {
+        this.map = new Map()
+        this.resetBounds()
+    }
 
+    resetBounds() {
+        const subBounds = { z: null, y: null, x: null };
+        this.bounds = { min: { ...subBounds }, max: { ...subBounds } };
+    }
+
+    maybeUpdateBounds(values, dimension) {
+        this.bounds.min[dimension] = this.bounds.min[dimension] === null ? Math.min(...values) : Math.min(...values, this.bounds.min[dimension]);
+        this.bounds.max[dimension] = this.bounds.max[dimension] === null ? Math.max(...values) : Math.max(...values, this.bounds.max[dimension]);
+    }
+
+    updateAllBounds() {
+        this.resetBounds();
+
+        const zKeys = [...this.map.keys()];
+        this.maybeUpdateBounds(zKeys, 'z');
+
+        zKeys.forEach(z => {
+            const yKeys = [...this.map.get(z).keys()]
+            this.maybeUpdateBounds(yKeys, 'y');
+            yKeys.forEach(y => this.maybeUpdateBounds([...this.map.get(z).get(y).keys()], 'x'));
+        });
+
+    }
+
+    add2DArea(area, z = 0) {
+        this.map.set(z, area);
+        this.updateAllBounds();
+    }
+
+    iterate() {
+        const allPoints = [];
+        const zKeys = [...this.map.keys()]
+        zKeys.sort();
+
+        for (const z of zKeys) {
+            const yKeys = [...this.map.get(z).keys()]
+            yKeys.sort();
+            for (const y of yKeys) {
+                const xKeys = [...this.map.get(z).get(y).keys()]
+                xKeys.sort();
+                for (const x of xKeys) {
+                    allPoints.push([new Point3D(z, y, x), this.map.get(z).get(y).get(x)]);
+                }
+            }
+        }
+
+
+        return allPoints;
+    }
+
+    removePoint(point) {
+        this.map.get(point.z).get(point.y).delete(point.x)
+        if (this.map.get(point.z).get(point.y).size === 0) {
+            this.map.get(point.z).delete(point.y);
+            if (this.map.get(point.z).size === 0) {
+                this.map.delete(point.z)
+            }
+        }
+    }
+
+    remove(value) {
+        for (const [point, pointValue] of this.iterate()) {
+            if (pointValue === value) {
+                this.removePoint(point);
+            }
+        }
+        this.updateAllBounds()
+
+    }
+
+    count(value = null) {
+        let count = 0;
+
+        for (const [point, pointValue] of this.iterate()) {
+            if (value === null || pointValue === value) {
+                count++;
+            }
+        }
+
+        return count
+    }
+
+    print() {
+        const keys = [...this.map.keys()]
+        keys.sort();
+
+        for (const key of keys) {
+            console.log("Z ix: " + key);
+            this.map.get(key).print();
+            console.log("\n");
+        }
+    }
 }
 
 class Point {
@@ -187,7 +285,18 @@ class Point {
     }
 }
 
+
+class Point3D {
+    constructor(z, y, x) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+}
+
 module.exports = {
     Area,
+    Area3D,
     Point
 }

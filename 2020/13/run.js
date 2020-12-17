@@ -152,7 +152,7 @@ const run2 = async () => {
 
 
 
-run2();
+// run2();
 
 module.exports = {
     lowestMultiplyer
