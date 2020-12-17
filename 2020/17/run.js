@@ -1,5 +1,5 @@
 const path = require('path');
-const { Point, Area3D } = require('../utils/area');
+const { Point, AreaXD } = require('../utils/area');
 const array = require('../utils/array');
 const { constructArea } = require('../utils/array');
 const { readFileLines } = require('../utils/file');
@@ -41,8 +41,8 @@ const doCycle = (area) => {
 const run = async () => {
     const subArea = constructArea(await readFileLines(inputPath))
 
-    const area = new Area3D();
-    area.add2DArea(subArea.map, 0);
+    const area = new AreaXD();
+    area.add2DArea(subArea.map);
     area.remove('.');
 
     for (let ix = 0; ix < 6; ix++) {
@@ -57,7 +57,27 @@ const run = async () => {
 
 
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+const run2 = async () => {
+    const subArea = constructArea(await readFileLines(inputPath))
+
+    const area = new AreaXD(4);
+    area.add2DArea(subArea.map);
+    area.remove('.');
+
+    for (let ix = 0; ix < 6; ix++) {
+
+        doCycle(area)
+
+    }
+
+    console.log(area.count());
+}
+
+
+
+
+run2();

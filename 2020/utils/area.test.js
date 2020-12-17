@@ -1,8 +1,8 @@
 const each = require('jest-each').default;
-const { Area3D, PointXD } = require('./area')
+const { AreaXD, PointXD } = require('./area')
 
 
-describe("Area3D ", () => {
+describe("AreaXD ", () => {
 
 
 
@@ -48,7 +48,7 @@ describe("Area3D ", () => {
         ],
 
     ]).test('count %p %p', (map, value, expected) => {
-        const area = new Area3D();
+        const area = new AreaXD();
         area.add2DArea(map);
 
         const result = area.count(value);
@@ -64,7 +64,7 @@ describe("Area3D ", () => {
             [0, 2, 2]
         ]
     ]).test('remove %p', (map, expectedCount, expectedMin, expectedMax) => {
-        const area = new Area3D();
+        const area = new AreaXD();
         area.add2DArea(map);
 
         area.remove('.');
@@ -139,7 +139,7 @@ describe("Area3D ", () => {
             ]
         ]
     ]).test('iterate with removal %p %p', (map, options, expectedPoints) => {
-        const area = new Area3D();
+        const area = new AreaXD();
         area.add2DArea(map, 0);
 
         area.remove('.');
