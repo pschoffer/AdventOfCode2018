@@ -9,11 +9,39 @@ const { progress } = require('../utils/print');
 
 let inputPath = path.join(__dirname, 'input.txt');
 // inputPath = path.join(__dirname, 'test.txt');
+// inputPath = path.join(__dirname, 'test2.txt');
 
 
 class Expression {
     constructor() {
         this.items = [];
+    }
+
+    increasePrioSubExpressions(op) {
+        this.items
+            .filter(element => element instanceof Expression)
+            .forEach(expr => expr.increasePrio(op));
+    }
+
+    increasePrio(op) {
+        this.increasePrioSubExpressions(op);
+
+
+        let newItems = [];
+
+        for (let ix = 0; ix < this.items.length; ix++) {
+            const element = this.items[ix];
+            if (element === op) {
+                const expr = new Expression();
+                expr.items = [newItems.pop(), element, this.items[ix + 1]];
+                newItems.push(expr);
+
+                ix++;
+            } else {
+                newItems.push(element);
+            }
+        }
+        this.items = newItems;
     }
 
     evalSubExpressions() {
@@ -107,7 +135,21 @@ const run = async () => {
 
 
 
-run();
+// run();
 
 // ------------------------------- Part 2 -------------------------------
 
+const run2 = async () => {
+    const exprs = (await readFileLines(inputPath))
+        .map(parseExpr)
+
+    exprs.forEach(expr => expr.increasePrio("+"));
+
+    const results = exprs.map(expr => expr.eval());
+
+    console.log(sumArr(results));
+}
+
+
+
+run2();
