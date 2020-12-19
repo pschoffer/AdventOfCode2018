@@ -4,7 +4,8 @@
   "description": "The year of javascript!",
   "main": "index.js",
   "dependencies": {
-    "jest": "^26.6.3"
+    "jest": "^26.6.3",
+    "xregexp": "^4.4.1"
   },
   "devDependencies": {
     "jest-each": "^26.6.2"
