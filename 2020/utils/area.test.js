@@ -1,12 +1,105 @@
 const each = require('jest-each').default;
-const { AreaXD, PointXD } = require('./area')
+const { AreaXD, PointXD, Area } = require('./area')
+const { constructArea } = require('./array')
 
+describe("Area", () => {
+
+    each([
+        [
+            [
+                '000',
+                '010',
+                '000',
+            ],
+            ['1']
+        ],
+        [
+            [
+                '0000',
+                '0220',
+                '0000',
+                '0000',
+            ],
+            ['2', '2']
+        ],
+    ]).test('removeBorder', (lines, expected) => {
+        const area = constructArea(lines)
+
+        const areaWithoutBorder = area.removeBorder();
+
+        const result = areaWithoutBorder.getRow(0)
+        expect(result).toStrictEqual(expected);
+    })
+
+    each([
+        [
+            [
+                '1000',
+                '0220',
+                '0030',
+                '1004',
+            ],
+            1,
+            [
+                ['0', '0', '0', '4'],
+                ['0', '2', '3', '0'],
+                ['0', '2', '0', '0'],
+                ['1', '0', '0', '1'],
+            ]
+        ],
+        [
+            [
+                '1000',
+                '0220',
+                '0030',
+                '1004',
+            ],
+            2,
+            [
+                ['4', '0', '0', '1'],
+                ['0', '3', '0', '0'],
+                ['0', '2', '2', '0'],
+                ['0', '0', '0', '1'],
+            ]
+        ],
+    ]).test('rotateCounter', (lines, times, expected) => {
+        const area = constructArea(lines)
+
+        const rotated = area.rotateCounter(times);
+
+        for (let ix = 0; ix < expected.length; ix++) {
+            const result = rotated.getRow(ix)
+
+            expect(result).toStrictEqual(expected[ix]);
+        }
+    })
+
+
+    each([
+        [
+            [
+                '1000',
+                '0220',
+                '0030',
+                '1004',
+            ],
+            [
+                ['1', '0', '0', '0'],
+                ['0', '2', '2', '0'],
+                ['0', '0', '3', '0'],
+                ['1', '0', '0', '4'],
+            ]
+        ],
+    ]).test('lines', (lines, expected) => {
+        const area = constructArea(lines)
+
+        const result = area.lines();
+
+        expect(result).toStrictEqual(expected);
+    })
+})
 
 describe("AreaXD ", () => {
-
-
-
-
     const line0 = new Map();
     line0.set(0, '.')
     line0.set(1, '.')

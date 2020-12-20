@@ -23,6 +23,9 @@ class Area {
     }
 
     setPointValue(point, value) {
+        if (!this.map.has(point.y)) {
+            this.map.set(point.y, new Map())
+        }
         this.map.get(point.y).set(point.x, value);
     }
 
@@ -47,12 +50,55 @@ class Area {
         return new Area(this.maxX, this.maxY, newMap);
     }
 
+    removeBorder() {
+        const map = new Map();
+
+        for (const point of this.pointIterator()) {
+            if (point.x === 0 || point.x === this.maxX || point.y === this.maxY || point.y === 0) {
+                continue
+            }
+            if (!map.has(point.y - 1)) {
+                map.set(point.y - 1, new Map())
+            }
+            map.get(point.y - 1,).set(point.x - 1, this.getPointValue(point));
+        }
+
+        return new Area(this.maxX - 2, this.maxY - 2, map)
+    }
+
+    rotateCounter(times = 1) {
+        const newArea = new Area(this.maxX, this.maxY, new Map());
+
+        for (const point of this.pointIterator()) {
+            const newPoint = new Point(point.y, this.maxY - point.x);
+            newArea.setPointValue(newPoint, this.getPointValue(point))
+        }
+
+        if (times > 1) {
+            return newArea.rotateCounter(times - 1)
+        } else {
+            return newArea;
+        }
+
+    }
+
+    lines() {
+        const lines = [];
+        for (let y = 0; y <= this.maxY; y++) {
+
+            lines.push(this.getRow(y));
+        }
+        return lines;
+    }
+
     getRow(ix) {
         const rowMap = this.map.get(ix);
         const row = [];
 
-        for (let x = 0; x <= this.maxX; x++) {
-            row.push(rowMap.get(x));
+        if (rowMap) {
+            for (let x = 0; x <= this.maxX; x++) {
+                row.push(rowMap.get(x));
+            }
         }
 
         return row;

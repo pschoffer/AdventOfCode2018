@@ -161,21 +161,98 @@ const run = async () => {
 
 
     const result = findSolution(resultSize, new PointXD(0, 0), null, candidates, tiles);
-    const corners = [
-        result[0][0],
-        result[0][resultSize - 1],
-        result[resultSize - 1][0],
-        result[resultSize - 1][resultSize - 1],
-    ].map(c => c.id);
-    console.log(mulArr(corners));
+
+    return {
+        result,
+        tiles
+    }
 }
 
 
-run();
-
 // ------------------------------- Part 2 -------------------------------
+
+const getLines = (result, tiles) => {
+    const tilesWithoutBorder = new Map();
+
+    [...tiles.keys()].forEach(id => { tilesWithoutBorder.set(id, tiles.get(id).area.regular.removeBorder()) })
+
+    const lines = result
+        .map(resultLine => {
+            return resultLine.map(({ id, flipped, rotated }) => {
+                let area = tilesWithoutBorder.get(id);
+                if (flipped) {
+                    area = area.flip();
+                }
+                if (rotated) {
+                    area = area.rotateCounter(rotated);
+                }
+
+                return area.lines();
+            })
+        })
+        .map(resultLine => {
+            return resultLine.reduce((prev, curr) => {
+                if (prev.length === 0) {
+                    return curr;
+                } else {
+                    const collector = [];
+                    for (let ix = 0; ix < curr.length; ix++) {
+                        collector.push(prev[ix].concat(curr[ix]));
+                    }
+                    return collector;
+                }
+            }, [])
+        })
+        .reduce((prev, curr) => prev.concat(curr), [])
+        .map(line => line.join(''));
+    return lines;
+}
+
+const line1 = /^.{18}#/;
+const line2 = /#.{4}##.{4}##.{4}###/;
+const line3 = /^.#..#..#..#..#..#/;
+
+const monsterCharCount = 1 + 8 + 6;
+
+const findMonster = (lines) => {
+    let monsterCount = 0;
+    for (let lineIx = 1; lineIx < lines.length - 1; lineIx++) {
+        let currentIx = 0;
+        let match = lines[lineIx].match(line2);
+
+
+        while (match) {
+            currentIx += match['index'];
+
+            if (lines[lineIx - 1].substr(currentIx).match(line1) && lines[lineIx + 1].substr(currentIx).match(line3)) {
+                monsterCount++;
+            }
+
+            currentIx++;
+            line = lines[lineIx].substr(currentIx);
+            match = line.match(line2);
+        }
+    }
+    return monsterCount;
+}
+
+const run2 = async () => {
+    const { result, tiles } = (await run());
+
+    let lines = getLines(result, tiles);
+
+    // I noticed fliping the picture no rotation results in some monsters so no need to try different variants.
+    lines = constructArea(lines).flip().lines().map(line => line.join(''));
+
+    const monsterCount = findMonster(lines);
+
+    console.log(monsterCount, constructArea(lines).countValue('#') - (monsterCount * monsterCharCount));
+}
+
+// run2()
 
 module.exports = {
     getBorders,
-    getBorderAfterAdjustment
+    getBorderAfterAdjustment,
+    findMonster
 }

@@ -1,5 +1,5 @@
 const each = require('jest-each').default;
-const { getBorders, getBorderAfterAdjustment } = require('./run')
+const { getBorders, getBorderAfterAdjustment, findMonster } = require('./run')
 const { constructArea } = require('../utils/array')
 
 
@@ -90,6 +90,39 @@ describe("Day20 ", () => {
         };
 
         const result = getBorderAfterAdjustment(borders, ix, flipped, rotated)
+
+        expect(result).toStrictEqual(expected);
+    });
+
+    each([
+        [
+            [
+                '                  #                    # ',
+                '#    ##    ##    ### #    ##    ##    ###',
+                ' #  #  #  #  #  #     #  #  #  #  #  #   ',
+            ],
+            2
+        ],
+        [
+            [
+                '                 #  ',
+                '#    ##    ##    ###',
+                ' #  #  #  #  #  #   ',
+            ],
+            0
+        ],
+        [
+            [
+                '                  # ',
+                '#    ##    ##    ###',
+                ' #  #  #  #  #  # # ',
+                '#    ##    ##    ###',
+                ' #  #  #  #  #  # # ',
+            ],
+            2
+        ],
+    ]).test('findMonster %p', (lines, expected) => {
+        const result = findMonster(lines)
 
         expect(result).toStrictEqual(expected);
     });
