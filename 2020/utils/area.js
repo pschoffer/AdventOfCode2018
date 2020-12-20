@@ -34,6 +34,40 @@ class Area {
         return points.map(p => this.map.get(p.y).get(p.x))
     }
 
+    flip() {
+        const newMap = new Map();
+        for (let y = 0; y <= this.maxY; y++) {
+            const newLine = new Map();
+            for (let x = 0; x <= this.maxX; x++) {
+                newLine.set(x, this.map.get(this.maxY - y).get(x));
+            }
+
+            newMap.set(y, newLine)
+        }
+        return new Area(this.maxX, this.maxY, newMap);
+    }
+
+    getRow(ix) {
+        const rowMap = this.map.get(ix);
+        const row = [];
+
+        for (let x = 0; x <= this.maxX; x++) {
+            row.push(rowMap.get(x));
+        }
+
+        return row;
+    }
+
+    getColumn(x) {
+        const column = [];
+
+        for (let y = 0; y <= this.maxY; y++) {
+            column.push(this.map.get(y).get(x));
+        }
+
+        return column;
+    }
+
     print() {
         let legend = "   ";
         for (let ixX = 0; ixX <= this.maxX; ixX++) {
