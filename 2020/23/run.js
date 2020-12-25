@@ -5,10 +5,10 @@ const { constructArea } = require('../utils/array');
 const { readFileLines } = require('../utils/file');
 const { Interval, range } = require('../utils/interval');
 const { sumArr, mulArr } = require('../utils/math');
-const { progress } = require('../utils/print');
+const { progress, perfTime } = require('../utils/print');
 
 let inputPath = path.join(__dirname, 'input.txt');
-inputPath = path.join(__dirname, 'test.txt');
+// inputPath = path.join(__dirname, 'test.txt');
 
 
 
@@ -74,6 +74,10 @@ const run = async () => {
 run()
 
 // ------------------------------- Part 2 -------------------------------
+
+
+// I totally brute forced it!! - it took 4 hours - correct solution is linked list
+
 
 const fillRest = (shells, size) => {
     const newShells = range(1, size);
@@ -175,6 +179,8 @@ const processShells = (shells, targetRounds) => {
     let currentIx = 0;
     const size = shells.length;
     for (let round = 0; round < targetRounds; round++) {
+        progress(round, targetRounds);
+
         const blacklistIxs = [1, 2, 3].map(shift => normelizeIx(currentIx + shift, size));
         const balcklistItems = blacklistIxs.map(ix => shells[ix]);
 
@@ -199,10 +205,8 @@ const run2 = async (size, targetRounds) => {
 
     shells = result.shells;
 
-    console.log(digest(shells));
-
     const indexOne = shells.indexOf(1);
     console.log(`Index ${indexOne}, ${shells[indexOne + 1]} * ${shells[indexOne + 2]} = ${shells[indexOne + 1] * shells[indexOne + 2]}`);
 }
 
-run2(9, 100);
+perfTime(() => run2(1000000, 10000000), 'test');

@@ -1,5 +1,7 @@
 const progress = (current, total) => {
-    console.log(`${current}/${total} - ${(100 / total) * current} %`);
+    if (current % (total / 1000) === 0) {
+        console.log(`${current}/${total} - ${(100 / total) * current} %`);
+    }
 }
 
 const perfTime = async (callback, label) => {
