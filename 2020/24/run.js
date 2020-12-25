@@ -66,9 +66,69 @@ const run = async () => {
     }
 
     console.log(area.count());
+    return area;
 }
 
-run()
+// run()
 
 // ------------------------------- Part 2 -------------------------------
 
+const getNeighbours = (point) => {
+    return Object.keys(ADJUSTMENTS)
+        .map(key => {
+            const adj = ADJUSTMENTS[key];
+            const newCoordinates = [0, 1].map(ix => point.coordinate[ix] + adj[ix]);
+            return new PointXD(...newCoordinates);
+        })
+}
+
+const markNeighbours = (point, neighbourCounterArea) => {
+    const neighbours = getNeighbours(point)
+
+    for (const neighbour of neighbours) {
+        const prevCount = neighbourCounterArea.get(neighbour) || 0;
+        neighbourCounterArea.addPoint(neighbour, prevCount + 1);
+    }
+}
+
+const run2 = async () => {
+    const area = await run();
+
+    const rounds = 100;
+
+    for (let round = 1; round <= rounds; round++) {
+
+        const neighbourCounterArea = new AreaXD(2);
+        const blackTiles = area.iterate().map(([point]) => point);
+        for (const blackTile of blackTiles) {
+            markNeighbours(blackTile, neighbourCounterArea);
+        }
+        /// addMissingBlackTiles
+        for (const blackTile of blackTiles) {
+            if (!neighbourCounterArea.get(blackTile)) {
+                neighbourCounterArea.addPoint(blackTile, 0);
+            }
+        }
+
+        for (const [point, count] of neighbourCounterArea.iterate()) {
+            if (area.get(point)) {
+                // currently black
+                if (count === 0 || count > 2) {
+                    area.removePoint(point)
+                }
+            } else {
+                // curently white
+                if (count === 2) {
+                    area.addPoint(point, true)
+                }
+
+            }
+        }
+
+        console.log(round, area.count());
+    }
+
+
+}
+
+run2()
